@@ -141,3 +141,37 @@ transmitters = {
     "discrete":[transmitter_bpsk, transmitter_qpsk, transmitter_8psk, transmitter_pam4, transmitter_qam16, transmitter_qam64, transmitter_gfsk, transmitter_cpfsk],
     "continuous":[transmitter_fm, transmitter_am, transmitter_amssb]
     }
+
+# [DF] THIS IS THE REVISED AM-SSB TRANSMITTER
+class transmitter_amssb_revised(gr.hier_block2):
+    modname = "AM-SSB"
+    def __init__(self):
+        gr.hier_block2.__init__(self, "transmitter_amssb",
+        gr.io_signature(1, 1, gr.sizeof_float),
+        gr.io_signature(1, 1, gr.sizeof_gr_complex))
+        self.rate = 44.1e3/200e3
+        self.interp = filter.rational_resampler_fff(
+            interpolation=200000,
+            decimation=44100,
+            taps=None,
+            fractional_bw=None
+        )
+        self.cnv = blocks.float_to_complex()
+        self.mul = blocks.multiply_const_cc(1.0)
+        self.add = blocks.add_const_cc(1.0)
+        self.src = analog.sig_source_c(200e3, analog.GR_SIN_WAVE, 0e3, 1.0)
+        self.mod = blocks.multiply_cc()
+        self.cnv_back = blocks.complex_to_float()
+        self.filt = filter.hilbert_fc(401)
+        self.connect(
+            self
+           ,self.interp
+           ,self.cnv
+           ,self.mul
+           ,self.add
+           ,self.mod
+           ,self.cnv_back
+           ,self.filt
+           ,self
+        )
+        self.connect( self.src, (self.mod,1) )
