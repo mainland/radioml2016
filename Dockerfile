@@ -232,12 +232,20 @@ RUN groupadd --gid $USER_GID $USERNAME \
   && chmod 0440 /etc/sudoers.d/$USERNAME
 
 #
-# Run everything from here on out as the atf user
+# Create virtualenv
+#
+COPY . /dragonradio
+RUN virtualenv --system-site-packages /venv \
+  && . /venv/bin/activate \
+  && pip install h5py \
+  && chown -R $USER_UID:$USER_GID /venv
+
+#
+# Run everything from here on out as USERNAME
 #
 USER $USERNAME
 
+ENV PATH /venv/bin:$PATH
 WORKDIR /home/$USERNAME
-
-# VOLUME ["/cache", "/common_logs"]
 
 CMD ["/bin/bash"]
