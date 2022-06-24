@@ -40,6 +40,7 @@ def generate(output=None, nvecs_per_key=1000, vec_length=128, seed=2016, apply_c
         print "snr is", snr
         for alphabet_type in transmitters.keys():
             for mod_type in transmitters[alphabet_type]:
+                chan_indx = 0
                 modvec_indx = 0
 
                 while modvec_indx < nvecs_per_key:
@@ -49,7 +50,30 @@ def generate(output=None, nvecs_per_key=1000, vec_length=128, seed=2016, apply_c
                     if mod_type.modname == "QAM64":
                         tx_len = int(30e3)
                     src = source_alphabet(alphabet_type, tx_len, True)
-                    mod = mod_type()
+
+                    # Only some modulation types support symbol rate and excess
+                    # bandwidth parameters
+                    sps = np.nan
+                    ebw = np.nan
+
+                    kwargs = {}
+
+                    # Choose symbol rate from range [1, 15], or [2, 15] if using
+                    # GFSK.
+                    if alphabet_type is 'discrete':
+                        if mod_type.modname == 'GFSK':
+                            sps = random.randint(2, 15)
+                        else:
+                            sps = random.randint(1, 15)
+                        kwargs['samples_per_symbol'] = sps
+
+                    # Choose excess bandwidth from range [0.1, 1.0]
+                    if alphabet_type is 'discrete' and mod_type.modname != 'CPFSK':
+                        ebw = random.uniform(0.1, 1.0)
+                        kwargs['excess_bw'] = ebw
+
+                    mod = mod_type(**kwargs)
+                    chan_indx += 1
 
                     noise_amp = 10**(-snr/10.0)
 
@@ -97,17 +121,17 @@ def generate(output=None, nvecs_per_key=1000, vec_length=128, seed=2016, apply_c
 
                         # Append data item
                         sig = np.stack((sampled_vector.real, sampled_vector.imag))
-                        items.append([mod_type.modname, snr, sampler_indx, sig])
+                        items.append([mod_type.modname, snr, chan_indx, sampler_indx, sps, ebw, sig])
 
-                        # bound the upper end very high so it's likely we get multiple passes through
-                        # independent channels
-                        sampler_indx += random.randint(vec_length, round(len(raw_output_vector)*.05))
+                        # Increase sampler index by an amount great enough so
+                        # that we expect to get a new channel often
+                        sampler_indx += random.randint(vec_length, round(len(raw_output_vector)*.2))
                         modvec_indx += 1
 
     print "all done. writing to disk"
 
     if output:
-        save_hdf5(items, ['ms', 'snr', 'offset', 'iq_data'], output)
+        save_hdf5(items, ['ms', 'snr', 'chan_idx', 'offset', 'sps', 'ebw', 'iq_data'], output)
 
 def save_hdf5(items, column_names, path, dset_name='radioml'):
     columns = []
