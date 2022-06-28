@@ -16,7 +16,7 @@ transmitters = {
     "continuous":[transmitter_fm, transmitter_am, transmitter_amssb_revised]
     }
 
-def generate(output=None, nvecs_per_key=1000, vec_length=128, seed=2016, apply_channel=True):
+def generate(output=None, nvecs_per_key=1000, vec_length=128, seed=2016, vary_sps=False, vary_ebw=False, apply_channel=True):
     """Generate dataset with dynamic channel model across range of SNRs
 
     Args:
@@ -24,6 +24,8 @@ def generate(output=None, nvecs_per_key=1000, vec_length=128, seed=2016, apply_c
         nvecs_per_key: number of signal vectors per settings. Defaults to 1000.
         vec_length: Signal vector length. Defaults to 1000.
         seed: random seed. Defaults to 2016.
+        vary_sps: Vary samples per symbol
+        vary_ebw: Vary excess bandwidth
         apply_channel: True if channel model should be applied. Defaults to True.
     """
     np.random.seed(seed)
@@ -60,7 +62,7 @@ def generate(output=None, nvecs_per_key=1000, vec_length=128, seed=2016, apply_c
 
                     # Choose symbol rate from range [1, 15], or [2, 15] if using
                     # GFSK.
-                    if alphabet_type is 'discrete':
+                    if vary_sps and alphabet_type is 'discrete':
                         if mod_type.modname == 'GFSK':
                             sps = random.randint(2, 15)
                         else:
@@ -68,7 +70,7 @@ def generate(output=None, nvecs_per_key=1000, vec_length=128, seed=2016, apply_c
                         kwargs['samples_per_symbol'] = sps
 
                     # Choose excess bandwidth from range [0.1, 1.0]
-                    if alphabet_type is 'discrete' and mod_type.modname != 'CPFSK':
+                    if vary_ebw and alphabet_type is 'discrete' and mod_type.modname != 'CPFSK':
                         ebw = random.uniform(0.1, 1.0)
                         kwargs['excess_bw'] = ebw
 
@@ -182,6 +184,12 @@ def main():
     parser.add_argument('--seed', type=int,
                         default=2016,
                         help='set random seed')
+    parser.add_argument('--sps', action='store_true',
+                        default=False,
+                        help='vary samples per symbol')
+    parser.add_argument('--ebw', action='store_true',
+                        default=False,
+                        help='vary excess bandwidth')
     parser.add_argument('-n', type=int,
                         default=1000,
                         help='number of signals to generate per parameter set')
@@ -196,7 +204,11 @@ def main():
     logging.basicConfig(format='%(asctime)s:%(name)s:%(levelname)s:%(message)s',
                         level=args.loglevel)
 
-    generate(output=args.output, seed=args.seed, nvecs_per_key=args.n)
+    generate(output=args.output,
+             seed=args.seed,
+             nvecs_per_key=args.n,
+             vary_sps=args.sps,
+             vary_ebw=args.ebw)
 
 if __name__ == "__main__":
     main()
