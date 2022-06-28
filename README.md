@@ -33,6 +33,15 @@ $ docker run -it --rm \
 
 Once in the container, the dataset can be generated with the command `python generate_RML2016.10a.py`.
 
+## New data generation script
+
+The `generate.py` script generates synthetic data using the RadioML 2016 approach with teh following modifications:
+
+ * A much larger prefix of each freshly-created channel is skipped. The channel transients are longer than the original RadioML code assumed, which resulted in some samples that did not contain signal.
+ * The samples per symbol and excess bandwidth parameters can be varied with the `--sps` and `--ebw` flags, respectively.
+ * A corrected AM-SSB modulator is used.
+ * Samples are written directly to an HDF5 file.
+
 ## References
 
 See also Chad Spooner's commentary on the dataset[^1][^2][^3].
