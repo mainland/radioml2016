@@ -1,1 +1,7 @@
-docker run --rm -v $PWD:/code -w /code radioml/minsdr /bin/bash -c "source /gr/setup_env.sh && python generate_RML2016.10a.py"
+#!/bin/sh
+# Run from a recursive checkout; pass generator options through unchanged.
+set -eu
+exec docker run --rm --network none \
+  --user "$(id -u):$(id -g)" -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 \
+  -v "$PWD:/work" -w /work "${RML_IMAGE:-radioml2016:reproducible}" \
+  python2.7 generate_RML2016.10a.py "$@"

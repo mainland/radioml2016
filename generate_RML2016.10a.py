@@ -1,7 +1,8 @@
 #!/usr/bin/env python
+from generator_options import configure
+options = configure()
 from transmitters import transmitters
 from source_alphabet import source_alphabet
-import analyze_stats
 from gnuradio import channels, gr, blocks
 import numpy as np
 import numpy.fft, cPickle, gzip
@@ -19,13 +20,15 @@ dataset = {}
 # {('mod type', SNR): np.array(nvecs_per_key, 2, vec_length), etc}
 
 # CIFAR-10 has 6000 samples/class. CIFAR-100 has 600. Somewhere in there seems like right order of magnitude
-nvecs_per_key = 1000
+nvecs_per_key = options.frames_per_key
 vec_length = 128
-snr_vals = range(-20,20,2)
+snr_vals = options.snrs
 for snr in snr_vals:
     print "snr is ", snr
-    for alphabet_type in transmitters.keys():
+    for alphabet_type in ("discrete", "continuous"):
         for i,mod_type in enumerate(transmitters[alphabet_type]):
+          if mod_type.modname not in options.modulations:
+              continue
           dataset[(mod_type.modname, snr)] = np.zeros([nvecs_per_key, 2, vec_length], dtype=np.float32)
           # moar vectors!
           insufficient_modsnr_vectors = True
@@ -43,7 +46,7 @@ for snr in snr_vals:
               mags = [1, 0.8, 0.3]
               ntaps = 8
               noise_amp = 10**(-snr/10.0)
-              chan = channels.dynamic_channel_model( 200e3, 0.01, 50, .01, 0.5e3, 8, fD, True, 4, delays, mags, ntaps, noise_amp, 0x1337 )
+              chan = channels.dynamic_channel_model( 200e3, 0.01, 50, .01, 0.5e3, 8, fD, True, 4, delays, mags, ntaps, noise_amp, options.channel_seed )
 
               snk = blocks.vector_sink_c()
 
@@ -76,4 +79,4 @@ for snr in snr_vals:
                   insufficient_modsnr_vectors = False
 
 print "all done. writing to disk"
-cPickle.dump( dataset, file("RML2016.10a_dict.dat", "wb" ) )
+cPickle.dump( dataset, file(options.output, "wb" ) )

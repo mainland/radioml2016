@@ -1,0 +1,91 @@
+--- a/gr-analog/lib/fastnoise_source_X_impl.h.t
++++ b/gr-analog/lib/fastnoise_source_X_impl.h.t
+@@ -27,6 +27,7 @@
+ 
+ #include <gnuradio/analog/@BASE_NAME@.h>
+ #include <gnuradio/random.h>
++#include <cstdlib>
+ 
+ namespace gr {
+   namespace analog {
+@@ -37,6 +38,14 @@
+       noise_type_t d_type;
+       float d_ampl;
+       gr::random d_rng;
++      // Pool lookup and random signs must not share process-global state.
++      struct drand48_data d_sample_rng;
++      long sample_random()
++      {
++        long value;
++        lrand48_r(&d_sample_rng, &value);
++        return value;
++      }
+       std::vector<@TYPE@> d_samples;
+ 
+     public:
+--- a/gr-analog/lib/fastnoise_source_X_impl.cc.t
++++ b/gr-analog/lib/fastnoise_source_X_impl.cc.t
+@@ -50,8 +50,10 @@
+ #else
+       d_ampl(ampl),
+ #endif
+-      d_rng(seed)
++      d_rng(seed),
++      d_sample_rng()
+     {
++      srand48_r(seed, &d_sample_rng);
+       d_samples.resize(samples);
+       generate();
+     }
+@@ -144,30 +146,21 @@
+ 
+     @TYPE@ @IMPL_NAME@::sample()
+     {
+-#ifdef __USE_GNU
+-        size_t idx = lrand48() % d_samples.size();
+-#else
+-        size_t idx = rand() % d_samples.size();
+-#endif
++        size_t idx = sample_random() % d_samples.size();
+         return d_samples[idx];
+     }
+-
+-#ifndef FASTNOISE_RANDOM_SIGN
+-#ifdef _MSC_VER
+-#define FASTNOISE_RANDOM_SIGN       ((rand()%2==0)?1:-1)
+-#else
+-#define FASTNOISE_RANDOM_SIGN       ((lrand48()%2==0)?1:-1)
+-#endif
+-#endif
+ 
+     @TYPE@ @IMPL_NAME@::sample_unbiased()
+     {
+ #if @IS_COMPLEX@
+         gr_complex s(sample());
+-        return gr_complex(FASTNOISE_RANDOM_SIGN * s.real(),
+-                          FASTNOISE_RANDOM_SIGN * s.imag());
++        const int real_sign = (sample_random() % 2 == 0) ? 1 : -1;
++        const int imag_sign = (sample_random() % 2 == 0) ? 1 : -1;
++        return gr_complex(real_sign * s.real(), imag_sign * s.imag());
+ #else
+-        return FASTNOISE_RANDOM_SIGN * sample();
++        const @TYPE@ s = sample();
++        const int sign = (sample_random() % 2 == 0) ? 1 : -1;
++        return sign * s;
+ #endif
+     }
+ 
+--- a/gr-channels/lib/dynamic_channel_model_impl.cc
++++ b/gr-channels/lib/dynamic_channel_model_impl.cc
+@@ -74,8 +74,9 @@
+       d_noise_adder = blocks::add_cc::make();
+       d_noise = analog::fastnoise_source_c::make(analog::GR_GAUSSIAN,
+ 						 noise_amp, noise_seed, 1024*8);
+-      d_sro_model = channels::sro_model::make(samp_rate, sro_std_dev, sro_max_dev, noise_seed);
+-      d_cfo_model = channels::cfo_model::make(samp_rate, cfo_std_dev, cfo_max_dev, noise_seed);
++      // Separate oscillator walks when fastnoise has per-instance RNG state.
++      d_sro_model = channels::sro_model::make(samp_rate, sro_std_dev, sro_max_dev, noise_seed + 1);
++      d_cfo_model = channels::cfo_model::make(samp_rate, cfo_std_dev, cfo_max_dev, noise_seed + 2);
+       d_fader = channels::selective_fading_model::make(N, doppler_freq / samp_rate, LOS_model, K, noise_seed, delays, mags, ntaps_mpath);
+ 
+       connect(self(), 0, d_sro_model, 0);

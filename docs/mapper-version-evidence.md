@@ -28,9 +28,14 @@ environment generated the distributed file.
 
 ## Experimental design
 
-The recorded comparison uses six images. Recreating the candidate datasets
-requires the deterministic generation extension. This environment includes the
-SNR estimator and recorded measurements:
+The retained candidate measurements used advancing channel base seeds.
+The default generator restarts the supplied seed for every transmission, so
+running the procedure with that default is a different channel-policy control.
+Keep that distinction when comparing new reports with the retained results.
+
+
+[`run_mapper_evidence.sh`](../scripts/run_mapper_evidence.sh) builds six
+images:
 
 1. The historical environment with the January 10 no-normalization mapper
    revision `463f9e94f5ea45e5be64bae06291423ead3b70f2`.
@@ -46,8 +51,7 @@ The three reproducible images use the same source tree, source material, Python
 and NumPy seeds, channel seeds, STS scheduler, and deterministic channel
 runtime. The mapper revision is the intended difference. Each image generates
 1,000 windows for all 20 SNR labels and all eleven modulations. Generating the
-complete modulation list preserves the generator loop's seed advancement and
-sampler draws. The comparison then selects the six mapper-based modulations.
+complete modulation list preserves the recorded sampler draw order. The comparison then selects the six mapper-based modulations.
 Before generation, the runner executes the historical runtime check against
 all three base images. It checks both BPSK and PAM4 because BPSK cannot
 distinguish no normalization from corrected normalization. The expected
@@ -188,10 +192,69 @@ historical channel detail. The reconstruction therefore claims the supported
 relative mapper behavior, not exact historical SNR.
 
 The [retained report](../evidence/mapper/snr-comparison.json) has SHA-256
-`c425f94d7ffde085a415f0522109cb204681c911014392a5a47a1cac3527c9a5`. Its
-[evidence index](../evidence/README.md) records the input identities, candidate
-images, and preservation limits. The reports record measurements from those
-images, rather than a validation run of this checkout.
+`c425f94d7ffde085a415f0522109cb204681c911014392a5a47a1cac3527c9a5`.
+Its [evidence index](../evidence/README.md) records the input identities,
+candidate images, and preservation limits. Rerun the procedure below into
+`output/mapper-evidence/` to compare a fresh result with that observation.
+
+## Run the comparison
+
+Use only a trusted pickle. Python pickle loading can execute instructions from
+the input. The runner requires the investigated distributed dataset SHA-256:
+
+```text
+b29ccc25b00d0718cd3b70ffa9158662ec83f6d9b63ffd845c7bcbe3b3096e8c
+```
+
+From a recursive checkout with Docker available, run:
+
+```sh
+./scripts/run_mapper_evidence.sh \
+  /path/to/RML2016.10a_dict.pkl \
+  output/mapper-evidence
+```
+
+The command builds the candidate images, generates approximately 220,000
+windows from each mapper, verifies the original input hash, and writes:
+
+| Path | Contents |
+| --- | --- |
+| `no-normalization.dat` | Candidate pickle generated with the January 10 mapper |
+| `pre-fix.dat` | Candidate pickle generated with the August 23 mapper |
+| `post-fix.dat` | Candidate pickle generated with the October 11 mapper |
+| `none-generation.log` | No-normalization generator output |
+| `pre-generation.log` | Pre-fix generator output |
+| `post-generation.log` | Post-fix generator output |
+| `none-runtime.json`, `none-runtime.log` | No-normalization runtime check |
+| `pre-runtime.json`, `pre-runtime.log` | Pre-fix runtime check |
+| `post-runtime.json`, `post-runtime.log` | Post-fix runtime check |
+| `images.json` | Docker image identities and configuration |
+| `snr-comparison.json` | Primary SNR curves, calibration, and mapper distances |
+
+The runner refuses to overwrite these principal artifacts. Select a new output
+directory for another run. Set `RML_MAPPER_IMAGE_PREFIX` to change the six
+Docker image tags.
+
+To run the primary estimator against existing candidate pickles, invoke it
+inside any reproducible image:
+
+```sh
+docker run --rm --network none --user "$(id -u):$(id -g)" \
+  -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 \
+  -v "$PWD:/work:ro" \
+  -v "/path/to/original-directory:/input:ro" \
+  -v "$PWD/output/mapper-evidence:/data" -w /work \
+  radioml2016:mapper-evidence-post-reproducible \
+  python2.7 scripts/estimate_mapper_snr.py \
+    /input/RML2016.10a_dict.pkl /data/pre-fix.dat /data/post-fix.dat \
+    --no-normalization /data/no-normalization.dat \
+    --expected-original-sha256 \
+      b29ccc25b00d0718cd3b70ffa9158662ec83f6d9b63ffd845c7bcbe3b3096e8c \
+    --output /data/snr-comparison.json
+```
+
+The estimator does not impose the known original-file hash unless
+`--expected-original-sha256` is supplied.
 
 ## Interpret the report
 

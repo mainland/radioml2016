@@ -1,0 +1,40 @@
+# Build the historical candidate first:
+#   docker build -t radioml2016:historical .
+# Then apply the explicitly nonhistorical determinism fix:
+#   docker build -f Dockerfile.reproducible -t radioml2016:reproducible .
+ARG BASE_IMAGE=radioml2016:historical
+FROM ${BASE_IMAGE}
+
+USER root
+ARG BUILD_JOBS=4
+COPY patches/gnuradio-3.7.10.1-fastnoise.patch /opt/replay-control/
+RUN test "$(git -C /opt/replay-src/gnuradio rev-parse HEAD)" = 59daaff0d9d04373d3a6b14ea7b46e080bad7a1e \
+ && test -z "$(git -C /opt/replay-src/gnuradio status --porcelain --untracked-files=no)" \
+ && git -C /opt/replay-src/gnuradio apply /opt/replay-control/gnuradio-3.7.10.1-fastnoise.patch \
+ && cd /opt/replay-src/gnuradio/build \
+ && cmake --build . -- -j"$BUILD_JOBS" \
+ && cmake --build . --target install \
+ && cp /opt/replay-control/gnuradio-3.7.10.1-fastnoise.patch /opt/replay-provenance/ \
+ && sha256sum /opt/replay-control/gnuradio-3.7.10.1-fastnoise.patch > /opt/replay-provenance/deterministic-runtime.sha256 \
+ && printf '%s\n' '{"schema":1,"runtime":"radioml2016-per-instance-fastnoise-v2","gnuradio_revision":"59daaff0d9d04373d3a6b14ea7b46e080bad7a1e","channel_seeds":{"awgn":"base","sro":"base+1","cfo":"base+2","fading":"base+i; base+i+1"}}' > /opt/replay-provenance/deterministic-runtime.json
+
+# Avoid hash randomization, CPU-specific VOLK kernels and threaded reductions.
+# Byte identity applies to this image, its inputs, and its execution settings.
+ENV PYTHONHASHSEED=0 VOLK_GENERIC=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1
+
+# Keep validation dependencies separate from the reconstructed generator stack,
+# and record their exact package versions.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      python-pytest=2.8.7-4 \
+      python-py=1.4.31-1 \
+ && dpkg-query -W -f='${Package}\t${Version}\n' \
+      python-pytest python-py python-pkg-resources \
+      > /opt/replay-provenance/test-packages.tsv \
+ && python2.7 -m pytest --version \
+      > /opt/replay-provenance/pytest.txt 2>&1
+
+# Match the historical image's default account; override for a custom base.
+ARG USERNAME=radioml
+USER ${USERNAME}
+CMD ["/bin/bash"]

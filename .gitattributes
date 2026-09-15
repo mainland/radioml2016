@@ -1,0 +1,2 @@
+# Unified patches include significant context prefixes and source whitespace.
+/patches/*.patch -text -whitespace

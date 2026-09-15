@@ -190,10 +190,11 @@ bug, or 1 and 1.5 for the October fix. BPSK alone cannot distinguish the first
 and third histories. This checks an explicitly chosen candidate, rather than
 inferring an original revision from its version string.
 
-This historical-image check is a standalone Python 2.7 program. The image
-intentionally preserves GNU Radio's shared RNG and omits the deterministic
-runtime patch and test-only dependencies. It validates the environment
-reconstruction; it does not provide repeatable dataset generation.
+This historical-image check is a standalone Python 2.7 program. The historical
+image intentionally preserves GNU Radio's shared RNG. Deterministic generation
+and its pytest validation belong to
+[`Dockerfile.reproducible`](../Dockerfile.reproducible), which validates the
+reproducible dataset generator rather than this environment reconstruction.
 
 `BUILD_JOBS` controls compilation parallelism (default 4). `USERNAME`,
 `USER_UID`, and `USER_GID` support working with mounted files. Source revision

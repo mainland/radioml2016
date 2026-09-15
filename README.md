@@ -1,41 +1,107 @@
 # RadioML 2016 dataset generation
 
-This repository reconstructs a candidate software environment for the RadioML
-2016.10a generators and records the evidence supporting each selected version.
-The environment is compatible with the public generator, but the distributed
-dataset's exact software revisions, CPU, and random states remain unknown.
-
-## Historical environment and evidence
+This repository generates deterministic datasets with the RadioML 2016.10a
+modulations, labels, and window layout. It pins a Linux amd64 environment,
+assigns every random source an explicit seed, and fixes the GNU Radio execution
+order. The generated data is a reconstruction, not a byte-for-byte copy of the
+distributed dataset.
 
 The [historical environment guide](docs/historical-environment.md) records the
-candidate versions, supporting evidence, and remaining uncertainty. Programs
-in [scripts/](scripts/) reproduce the noise analysis against a separately
-supplied copy of the distributed dataset and check the selected runtime.
+version evidence and its limits. Programs in [scripts/](scripts/) reproduce the
+noise analysis against a separately supplied copy of the distributed dataset.
+The [mapper-version investigation](docs/mapper-version-evidence.md) estimates
+actual SNR without recovering the noise RNG state, calibrates the estimator
+against paired mapper candidates, and fits the relative constellation powers
+for no normalization, the February 2016 accumulator bug, and the October 2016
+fix. The retained advancing-seed candidate supports the earlier no-normalization
+mapper. Its common 2.871 dB SNR offset describes that recorded experiment,
+not the restarting-channel default.
 
-Clone recursively to obtain the original text and audio sources, then build:
+## Build the environment
+
+Clone recursively to obtain the original text and audio sources:
 
 ```sh
 git clone --recursive https://github.com/mainland/radioml2016
 cd radioml2016
 docker build --platform linux/amd64 -t radioml2016:historical .
+docker build --platform linux/amd64 -f Dockerfile.reproducible \
+  -t radioml2016:reproducible .
 ```
 
-Check the historical stack:
+Both images are required: the reproducible image extends the historical
+candidate. The [historical environment guide](docs/historical-environment.md)
+explains the selected versions and the noise-evidence investigation.
+
+The image uses the January 10, 2016 `gr-mapper` revision before constellation
+normalization was introduced. That choice is based on the distributed
+dataset's relative SNR across six digital modulations, not on its publication
+date. The retained SNR comparison used advancing channel seeds, so its common
+offset does not describe the restarting default.
+
+## Generate the compatibility dataset
+
+Use the original generator parameters and specify every seed and the scheduler:
 
 ```sh
-mkdir -p output/evidence
-docker run --rm --network none --user "$(id -u):$(id -g)" \
-  -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 \
-  -v "$PWD:/work:ro" -v "$PWD/output/evidence:/out" -w /work \
-  radioml2016:historical \
-  python2.7 scripts/check_historical_runtime.py --output /out/runtime.json
+./build_dataset \
+  --python-seed 201610 \
+  --numpy-seed 201610 \
+  --channel-seed 0x1337 \
+  --scheduler sts \
+  --frames-per-key 1000 \
+  --output RML2016.10a_reproducible.dat
 ```
 
-The [noise evidence commands](docs/noise-evidence.md)
-compare a supplied original dataset pickle against competing Gaussian pools
-and test recovered indices against the historical random-number recurrence.
-Generated evidence stays in `output/`. The historical image preserves the
-shared channel RNG, so fixed software versions alone do not make it repeat.
+The output contains 11 modulations, the 20 SNR labels from -20 through 18,
+1,000 windows per key, and 128 complex samples per window. Its Python 2 pickle
+uses protocol 0 and maps each `(modulation, SNR)` key to a
+`float32[1000, 2, 128]` array.
+
+The generator defaults to GNU Radio's single-thread scheduler (`STS`). The
+reproducibility test requires byte-identical output across fresh STS processes.
+Use `--scheduler tpb` only to investigate the thread-per-block scheduler; TPB
+is outside the reproducibility guarantee.
+
+The result is not byte-identical to the distributed RML2016.10a pickle. The
+original Python, NumPy, and process-global channel RNG states, scheduler
+interleaving, and complete environment are unknown. The supported claim is a
+deterministic reconstruction that preserves the known generator semantics and
+output schema in the pinned Linux amd64 image.
+
+Every transmission reuses the supplied channel seed. This follows the
+published constructor argument while the runtime patch makes the private
+channel streams repeatable.
+
+For a smaller run:
+
+```sh
+./build_dataset --python-seed 42 --numpy-seed 43 --channel-seed 44 \
+  --modulations BPSK QPSK --snrs 18 --frames-per-key 80 --output example.dat
+```
+
+See [reproducible generation](docs/reproducible-generation.md) for seed routing,
+runtime changes, and the scope of reproducibility.
+
+## Check reproducibility
+
+```sh
+mkdir -p output/check
+docker run --rm --network none --user "$(id -u):$(id -g)" \
+  -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 \
+  -v "$PWD:/work:ro" -v "$PWD/output/check:/out" -w /work \
+  radioml2016:reproducible \
+  python2.7 tests/check_reproducibility.py --output /out
+```
+
+The check compares three fresh runs across all 11 modulations at two SNRs
+with 80 windows per key, then checks independent seed changes.
+
+## Historical source references
+
+[Earlier generators and their helpers](historical/README.md) are preserved
+unchanged, with source revision, hashes, and a comparison of their sampling
+and channel settings. They provide evidence of the generator's development.
 
 ## References
 
