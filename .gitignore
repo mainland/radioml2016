@@ -1,2 +1,9 @@
 *.pyc
 *.dat
+*.h5
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+/notes/
+/output/
+/archive/

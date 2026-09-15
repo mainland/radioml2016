@@ -1,0 +1,9 @@
+.git
+source_material
+__pycache__
+**/__pycache__
+*.pyc
+*.dat
+*.h5
+data
+output

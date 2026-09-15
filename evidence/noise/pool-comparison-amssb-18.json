@@ -1,0 +1,95 @@
+{
+  "key_count": 220, 
+  "dtypes": [
+    "float32"
+  ], 
+  "path": "/data/original.pkl", 
+  "size_bytes": 640919653, 
+  "probe_key": [
+    "AM-SSB", 
+    18
+  ], 
+  "sum_abs_max": 1.000000238418579, 
+  "sum_abs_min": 0.9999997615814209, 
+  "shapes": [
+    [
+      1000, 
+      2, 
+      128
+    ]
+  ], 
+  "snrs": [
+    -20, 
+    -18, 
+    -16, 
+    -14, 
+    -12, 
+    -10, 
+    -8, 
+    -6, 
+    -4, 
+    -2, 
+    0, 
+    2, 
+    4, 
+    6, 
+    8, 
+    10, 
+    12, 
+    14, 
+    16, 
+    18
+  ], 
+  "pools": {
+    "mt-4919": {
+      "windows_below_1e-6_relative_error": 984, 
+      "relative_waveform_error_max": 1.0737009348403367e-06, 
+      "phase_distance_median": 6.33502953407237e-07, 
+      "phase_distance_max": 0.00011481825654854262, 
+      "sample_count": 128000, 
+      "relative_waveform_error_min": 1.9744349195148628e-07, 
+      "relative_waveform_error_median": 8.633876971534197e-07, 
+      "path": "/out/mt-4919.csv", 
+      "sha256": "55b7fd39c16ed53fe2ab68a1ce62a69766300addf72428b5a207f5c921fa42db", 
+      "phase_distance_below_1e-6": 92131
+    }, 
+    "mt-5489": {
+      "windows_below_1e-6_relative_error": 0, 
+      "relative_waveform_error_max": 0.08427110797826402, 
+      "phase_distance_median": 0.00026570210140117255, 
+      "phase_distance_max": 0.0030458481541369444, 
+      "sample_count": 128000, 
+      "relative_waveform_error_min": 0.018150972280809953, 
+      "relative_waveform_error_median": 0.02752991024485966, 
+      "path": "/out/mt-5489.csv", 
+      "sha256": "41049e386bd1e41d4403616881032ef2b4a68f68039b5035099ca6379b952a7f", 
+      "phase_distance_below_1e-6": 356
+    }, 
+    "nr-4919": {
+      "windows_below_1e-6_relative_error": 0, 
+      "relative_waveform_error_max": 0.08919324809796904, 
+      "phase_distance_median": 0.00026356807395332707, 
+      "phase_distance_max": 0.003425926697847977, 
+      "sample_count": 128000, 
+      "relative_waveform_error_min": 0.018180937641727377, 
+      "relative_waveform_error_median": 0.02782696797077159, 
+      "path": "/out/nr-4919.csv", 
+      "sha256": "d0c4fcc3342cc5aea8e6327013768ca7645b517209397fd17d3d8bef788db11d", 
+      "phase_distance_below_1e-6": 469
+    }
+  }, 
+  "sha256": "b29ccc25b00d0718cd3b70ffa9158662ec83f6d9b63ffd845c7bcbe3b3096e8c", 
+  "modulations": [
+    "8PSK", 
+    "AM-DSB", 
+    "AM-SSB", 
+    "BPSK", 
+    "CPFSK", 
+    "GFSK", 
+    "PAM4", 
+    "QAM16", 
+    "QAM64", 
+    "QPSK", 
+    "WBFM"
+  ]
+}

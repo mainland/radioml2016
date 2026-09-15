@@ -1,0 +1,344 @@
+[
+    {
+        "Id": "sha256:8aa0f3f3e33fe9e14476eaac7ee72363e10eec0de8de04ae27c691367caa7bea",
+        "RepoTags": [
+            "radioml2016:mapper-evidence-none-historical"
+        ],
+        "RepoDigests": [],
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2026-09-21T11:14:49.594358747-04:00",
+        "Config": {
+            "User": "radioml",
+            "Env": [
+                "PATH=/opt/rml/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "PYTHONPATH=/opt/rml/lib/python2.7/dist-packages:/opt/rml/lib/python2.7/site-packages",
+                "LD_LIBRARY_PATH=/opt/rml/lib",
+                "PKG_CONFIG_PATH=/opt/rml/lib/pkgconfig",
+                "CMAKE_PREFIX_PATH=/opt/rml",
+                "MPLBACKEND=Agg"
+            ],
+            "Cmd": [
+                "/bin/bash"
+            ],
+            "WorkingDir": "/home/radioml",
+            "ArgsEscaped": true
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 1324210709,
+        "GraphDriver": {
+            "Data": {
+                "Dataset": "tank/docker/tct942gibe5wug7wyrnkf8w2x",
+                "Mountpoint": "/var/lib/docker/zfs/graph/tct942gibe5wug7wyrnkf8w2x"
+            },
+            "Name": "zfs"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:be96a3f634de79f523f07c7e4e0216c28af45eb5776e7a6238a2392f71e01069",
+                "sha256:df54c846128da3c71cc11b2150a3df39ec86fb170e299765daf6bb016a0705c2",
+                "sha256:47ef83afae74745639f6738a05fe5320fcfca9e6c7765fba4f25e270bc0df9dc",
+                "sha256:1251204ef8fc20da275e09f6e3ab9205421d4ff34732f2d50a1d3e86d2995edd",
+                "sha256:57cce0d8b421da0baf9515e25c205c4b33cf79c540142a3b7921fba3485d8fe7",
+                "sha256:35da09c0a4d7e8d1058b733d44f85ebb53aa0bb1a12ca59fd0c782fc3fb4dc7d",
+                "sha256:01467e4d48077550cab4ad236405d2b64f8d7588bb1df2b42d49f27f4f2f44c3",
+                "sha256:0bc687e59634d7b7e59e68b7ec7a5f82545326baf70dc4a0929c9ceb414b65ca",
+                "sha256:a54807a032591cd2e8c0702e721b293f855d6a8c3c6e9ca88ce25054fc023394",
+                "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-09-21T11:15:11.477013518-04:00"
+        }
+    },
+    {
+        "Id": "sha256:297e29c549ae8f9969df2546b1e3e7bcbf2fb446f100dd5897ebe36011110431",
+        "RepoTags": [
+            "radioml2016:mapper-evidence-pre-historical"
+        ],
+        "RepoDigests": [],
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2026-09-21T09:35:37.087098965-04:00",
+        "Config": {
+            "User": "radioml",
+            "Env": [
+                "PATH=/opt/rml/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "PYTHONPATH=/opt/rml/lib/python2.7/dist-packages:/opt/rml/lib/python2.7/site-packages",
+                "LD_LIBRARY_PATH=/opt/rml/lib",
+                "PKG_CONFIG_PATH=/opt/rml/lib/pkgconfig",
+                "CMAKE_PREFIX_PATH=/opt/rml",
+                "MPLBACKEND=Agg"
+            ],
+            "Cmd": [
+                "/bin/bash"
+            ],
+            "WorkingDir": "/home/radioml",
+            "ArgsEscaped": true
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 1324265516,
+        "GraphDriver": {
+            "Data": {
+                "Dataset": "tank/docker/d5nfxkbuf3fwlvzm99jvhix3d",
+                "Mountpoint": "/var/lib/docker/zfs/graph/d5nfxkbuf3fwlvzm99jvhix3d"
+            },
+            "Name": "zfs"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:be96a3f634de79f523f07c7e4e0216c28af45eb5776e7a6238a2392f71e01069",
+                "sha256:df54c846128da3c71cc11b2150a3df39ec86fb170e299765daf6bb016a0705c2",
+                "sha256:47ef83afae74745639f6738a05fe5320fcfca9e6c7765fba4f25e270bc0df9dc",
+                "sha256:1251204ef8fc20da275e09f6e3ab9205421d4ff34732f2d50a1d3e86d2995edd",
+                "sha256:83f22bcd3bbbf5efc3e5de4fc4c251fe59e11140a37ad5edbbcf06ecd2dde0bd",
+                "sha256:3c6b44fcb6805e0bf2a7821e35768b35c3a651be2da5b6850db7dd032f85808a",
+                "sha256:2f81bd2539f4e957af8b2aa51986218764beba830c47e69a114fa0494d6b05c9",
+                "sha256:ab4151df9448652163ea5df25574cbf867ffe975d27b6c1b6ffd82ba2399b483",
+                "sha256:8981b0e9849fdbb015f117d8bd8563ad640b24d64b74e5cddca4930b5c908f13",
+                "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-09-21T09:36:06.30993219-04:00"
+        }
+    },
+    {
+        "Id": "sha256:9adfe18e185c72fccd2e7edbde393adbcf5f6ccee87301cb0fd4ee2048db88b2",
+        "RepoTags": [
+            "radioml2016:mapper-evidence-post-historical"
+        ],
+        "RepoDigests": [],
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2026-09-21T09:44:40.276423289-04:00",
+        "Config": {
+            "User": "radioml",
+            "Env": [
+                "PATH=/opt/rml/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "PYTHONPATH=/opt/rml/lib/python2.7/dist-packages:/opt/rml/lib/python2.7/site-packages",
+                "LD_LIBRARY_PATH=/opt/rml/lib",
+                "PKG_CONFIG_PATH=/opt/rml/lib/pkgconfig",
+                "CMAKE_PREFIX_PATH=/opt/rml",
+                "MPLBACKEND=Agg"
+            ],
+            "Cmd": [
+                "/bin/bash"
+            ],
+            "WorkingDir": "/home/radioml",
+            "ArgsEscaped": true
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 1324257024,
+        "GraphDriver": {
+            "Data": {
+                "Dataset": "tank/docker/bx2w1z2nhbibwqoywyenoem83",
+                "Mountpoint": "/var/lib/docker/zfs/graph/bx2w1z2nhbibwqoywyenoem83"
+            },
+            "Name": "zfs"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:be96a3f634de79f523f07c7e4e0216c28af45eb5776e7a6238a2392f71e01069",
+                "sha256:df54c846128da3c71cc11b2150a3df39ec86fb170e299765daf6bb016a0705c2",
+                "sha256:47ef83afae74745639f6738a05fe5320fcfca9e6c7765fba4f25e270bc0df9dc",
+                "sha256:1251204ef8fc20da275e09f6e3ab9205421d4ff34732f2d50a1d3e86d2995edd",
+                "sha256:d87499834eb50050206d79059e7e8e25d0520885929f5ddf0655829d74f6ea5e",
+                "sha256:c039bfd416d697bee9ab1c72ea88e46987f1591fccaafe1e246f1e1bd4a29af1",
+                "sha256:cecad1870da315b9da999ac1a8a463e6628312c8c212a6bf787ca2840cee616b",
+                "sha256:aa2eda137c2310017c2fdae0103cf9f01f3544dcce81b392dba8f8ce05b6ccbf",
+                "sha256:083c18814d69fddde8cfd443aaf2bf0af01e3ac8c5e9bafc7945350998fbabd6",
+                "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-09-21T09:45:07.653482594-04:00"
+        }
+    },
+    {
+        "Id": "sha256:a9d8116c1311956fbed6b74a99fbd997ddf808bc0264976aeb3f317caab74a4c",
+        "RepoTags": [
+            "radioml2016:mapper-evidence-none-reproducible"
+        ],
+        "RepoDigests": [],
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2026-09-21T11:16:34.836044189-04:00",
+        "Config": {
+            "User": "radioml",
+            "Env": [
+                "PATH=/opt/rml/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "PYTHONPATH=/opt/rml/lib/python2.7/dist-packages:/opt/rml/lib/python2.7/site-packages",
+                "LD_LIBRARY_PATH=/opt/rml/lib",
+                "PKG_CONFIG_PATH=/opt/rml/lib/pkgconfig",
+                "CMAKE_PREFIX_PATH=/opt/rml",
+                "MPLBACKEND=Agg",
+                "PYTHONHASHSEED=0",
+                "VOLK_GENERIC=1",
+                "OMP_NUM_THREADS=1",
+                "OPENBLAS_NUM_THREADS=1"
+            ],
+            "Cmd": [
+                "/bin/bash"
+            ],
+            "WorkingDir": "/home/radioml",
+            "ArgsEscaped": true
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 1366851180,
+        "GraphDriver": {
+            "Data": {
+                "Dataset": "tank/docker/ovxxb8o6b6itqzn3gjwk0rh37",
+                "Mountpoint": "/var/lib/docker/zfs/graph/ovxxb8o6b6itqzn3gjwk0rh37"
+            },
+            "Name": "zfs"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:be96a3f634de79f523f07c7e4e0216c28af45eb5776e7a6238a2392f71e01069",
+                "sha256:df54c846128da3c71cc11b2150a3df39ec86fb170e299765daf6bb016a0705c2",
+                "sha256:47ef83afae74745639f6738a05fe5320fcfca9e6c7765fba4f25e270bc0df9dc",
+                "sha256:1251204ef8fc20da275e09f6e3ab9205421d4ff34732f2d50a1d3e86d2995edd",
+                "sha256:57cce0d8b421da0baf9515e25c205c4b33cf79c540142a3b7921fba3485d8fe7",
+                "sha256:35da09c0a4d7e8d1058b733d44f85ebb53aa0bb1a12ca59fd0c782fc3fb4dc7d",
+                "sha256:01467e4d48077550cab4ad236405d2b64f8d7588bb1df2b42d49f27f4f2f44c3",
+                "sha256:0bc687e59634d7b7e59e68b7ec7a5f82545326baf70dc4a0929c9ceb414b65ca",
+                "sha256:a54807a032591cd2e8c0702e721b293f855d6a8c3c6e9ca88ce25054fc023394",
+                "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+                "sha256:7a1a91c40b0cd7246aaa3d00201d5bd302fcad6185d8b66aba9dd01fb1dcefc7",
+                "sha256:ce61ad770f41d79dba92d1f4d261434947d604daf346d9d8fa01d086dce5a7fd",
+                "sha256:a69206f124f0a5606d176a5f5feccd726f43f4aa19d710c9718dc02035bccd17",
+                "sha256:7de2b4f6628266aaf6f5cc61e8158d8089f17f80a45b52e9320044608be68d2b"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-09-21T11:16:39.635908588-04:00"
+        }
+    },
+    {
+        "Id": "sha256:f7a89352dda66b77129f1d2ce1a205859f23c908da1a48d31b63828cc4018a78",
+        "RepoTags": [
+            "radioml2016:mapper-evidence-pre-reproducible"
+        ],
+        "RepoDigests": [],
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2026-09-21T09:45:42.727677564-04:00",
+        "Config": {
+            "User": "radioml",
+            "Env": [
+                "PATH=/opt/rml/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "PYTHONPATH=/opt/rml/lib/python2.7/dist-packages:/opt/rml/lib/python2.7/site-packages",
+                "LD_LIBRARY_PATH=/opt/rml/lib",
+                "PKG_CONFIG_PATH=/opt/rml/lib/pkgconfig",
+                "CMAKE_PREFIX_PATH=/opt/rml",
+                "MPLBACKEND=Agg",
+                "PYTHONHASHSEED=0",
+                "VOLK_GENERIC=1",
+                "OMP_NUM_THREADS=1",
+                "OPENBLAS_NUM_THREADS=1"
+            ],
+            "Cmd": [
+                "/bin/bash"
+            ],
+            "WorkingDir": "/home/radioml",
+            "ArgsEscaped": true
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 1366905987,
+        "GraphDriver": {
+            "Data": {
+                "Dataset": "tank/docker/pd1aa9ozzqyel1bt7avw0wc6l",
+                "Mountpoint": "/var/lib/docker/zfs/graph/pd1aa9ozzqyel1bt7avw0wc6l"
+            },
+            "Name": "zfs"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:be96a3f634de79f523f07c7e4e0216c28af45eb5776e7a6238a2392f71e01069",
+                "sha256:df54c846128da3c71cc11b2150a3df39ec86fb170e299765daf6bb016a0705c2",
+                "sha256:47ef83afae74745639f6738a05fe5320fcfca9e6c7765fba4f25e270bc0df9dc",
+                "sha256:1251204ef8fc20da275e09f6e3ab9205421d4ff34732f2d50a1d3e86d2995edd",
+                "sha256:83f22bcd3bbbf5efc3e5de4fc4c251fe59e11140a37ad5edbbcf06ecd2dde0bd",
+                "sha256:3c6b44fcb6805e0bf2a7821e35768b35c3a651be2da5b6850db7dd032f85808a",
+                "sha256:2f81bd2539f4e957af8b2aa51986218764beba830c47e69a114fa0494d6b05c9",
+                "sha256:ab4151df9448652163ea5df25574cbf867ffe975d27b6c1b6ffd82ba2399b483",
+                "sha256:8981b0e9849fdbb015f117d8bd8563ad640b24d64b74e5cddca4930b5c908f13",
+                "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+                "sha256:a27b4927444d6363770752818343be1d69c0c25b7f0a3a87890cd45ca0e08d9d",
+                "sha256:14828423a5d795688e57add0c3f073137980a21953b48b7badd0b96be4f3a96e",
+                "sha256:58c805ac07f811a43a6ddfac671b3b10baf7b1a5e7ce3f0f73908773773dd98e",
+                "sha256:56e6d4847f5df15ad3347bfe59642a1baad410fb4fe8926b8d382fc98518d99e"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-09-21T09:45:48.186513243-04:00"
+        }
+    },
+    {
+        "Id": "sha256:5a6019548efc4c1498f9eaad429b63a13be00e42d3b2afd8bf430a01e2b3de1a",
+        "RepoTags": [
+            "radioml2016:mapper-evidence-post-reproducible"
+        ],
+        "RepoDigests": [],
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2026-09-21T09:46:28.570131039-04:00",
+        "Config": {
+            "User": "radioml",
+            "Env": [
+                "PATH=/opt/rml/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "PYTHONPATH=/opt/rml/lib/python2.7/dist-packages:/opt/rml/lib/python2.7/site-packages",
+                "LD_LIBRARY_PATH=/opt/rml/lib",
+                "PKG_CONFIG_PATH=/opt/rml/lib/pkgconfig",
+                "CMAKE_PREFIX_PATH=/opt/rml",
+                "MPLBACKEND=Agg",
+                "PYTHONHASHSEED=0",
+                "VOLK_GENERIC=1",
+                "OMP_NUM_THREADS=1",
+                "OPENBLAS_NUM_THREADS=1"
+            ],
+            "Cmd": [
+                "/bin/bash"
+            ],
+            "WorkingDir": "/home/radioml",
+            "ArgsEscaped": true
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 1366897495,
+        "GraphDriver": {
+            "Data": {
+                "Dataset": "tank/docker/ki1lbuwyuw7wxhvapqkt2aydy",
+                "Mountpoint": "/var/lib/docker/zfs/graph/ki1lbuwyuw7wxhvapqkt2aydy"
+            },
+            "Name": "zfs"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:be96a3f634de79f523f07c7e4e0216c28af45eb5776e7a6238a2392f71e01069",
+                "sha256:df54c846128da3c71cc11b2150a3df39ec86fb170e299765daf6bb016a0705c2",
+                "sha256:47ef83afae74745639f6738a05fe5320fcfca9e6c7765fba4f25e270bc0df9dc",
+                "sha256:1251204ef8fc20da275e09f6e3ab9205421d4ff34732f2d50a1d3e86d2995edd",
+                "sha256:d87499834eb50050206d79059e7e8e25d0520885929f5ddf0655829d74f6ea5e",
+                "sha256:c039bfd416d697bee9ab1c72ea88e46987f1591fccaafe1e246f1e1bd4a29af1",
+                "sha256:cecad1870da315b9da999ac1a8a463e6628312c8c212a6bf787ca2840cee616b",
+                "sha256:aa2eda137c2310017c2fdae0103cf9f01f3544dcce81b392dba8f8ce05b6ccbf",
+                "sha256:083c18814d69fddde8cfd443aaf2bf0af01e3ac8c5e9bafc7945350998fbabd6",
+                "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+                "sha256:9cbe5ece8fa9b995362b43c8adf4a9b21984e8de4b0ae4ea14ac2ecabccab547",
+                "sha256:2f9b81286ded1d5df7440f6aae4bacf1c60e9066445fc5b974baa02e293d3edc",
+                "sha256:3b4ee3e63f9370976ad45a5a1c67dc491a271183b1defb228a741861c57ed7e8",
+                "sha256:62dca5291f9c3c44356e4eb181b97e491617a17e2046acff9cf0d8ad9946f001"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-09-21T09:46:33.203894527-04:00"
+        }
+    }
+]

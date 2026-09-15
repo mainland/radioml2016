@@ -1,0 +1,120 @@
+{
+  "bpsk_mapper": {
+    "mean_power": 1.0, 
+    "peak": 1.0, 
+    "samples": 32, 
+    "sha256": "a4fb8bf93ba448aa432bc403c5ecfd5e8c0961fcc483c7e0237e8370da3faf49"
+  }, 
+  "channel": {
+    "mean_power": 3.3039193153381348, 
+    "peak": 4.518137454986572, 
+    "samples": 4088, 
+    "sha256": "f0ff14aa3cbe43588554652c4ea9ce2fda3fc3e6c0c682bb833da0df6cb3b84a"
+  }, 
+  "channel_fingerprint_repeatable": false, 
+  "fastnoise": {
+    "checked_samples": 4096, 
+    "distinct_pool_entries": 3200, 
+    "lrand48_seed": 0, 
+    "pool": {
+      "mean_power": 0.9828341603279114, 
+      "peak": 3.081059217453003, 
+      "samples": 8192, 
+      "sha256": "b3e06c48d2bfc5d508702e79d7aa6ccec713a9553ff19fa34cf2ba3769fcd9db"
+    }, 
+    "samples": {
+      "mean_power": 0.9796443581581116, 
+      "peak": 2.6280925273895264, 
+      "samples": 4096, 
+      "sha256": "44101747cda012d566acc52e0ab1eb03bb8f90b7a4c572c1bd27ac1a606204da"
+    }, 
+    "seed": 4919
+  }, 
+  "gnuradio": "3.7.10.1", 
+  "mapper": "/opt/rml/lib/python2.7/dist-packages/mapper/__init__.pyc", 
+  "matplotlib": "1.5.1", 
+  "mediatools": "/opt/rml/lib/python2.7/dist-packages/mediatools/__init__.pyc", 
+  "modulation_checks": {
+    "8PSK": {
+      "mean_power": 0.8719045519828796, 
+      "peak": 1.4938467741012573, 
+      "samples": 2728, 
+      "sha256": "92fc8a2e1c6508c4c76563480688bf326b774aa07d881571f2f3eaab83e5ef72"
+    }, 
+    "AM-DSB": {
+      "mean_power": 1.0000067949295044, 
+      "peak": 1.0000361204147339, 
+      "samples": 4608, 
+      "sha256": "71e1a5a92ef4bbc2d6670b3827e5e36d310351852d819bdbd139bff25781720e"
+    }, 
+    "AM-SSB": {
+      "mean_power": 5.030037659331678e-17, 
+      "peak": 1.5181766954697196e-08, 
+      "samples": 4608, 
+      "sha256": "f7071ad00e89af7143e5e6d994a165b5651b4619d04cb649b985919dfe08f886"
+    }, 
+    "BPSK": {
+      "mean_power": 0.9573496580123901, 
+      "peak": 1.5782421827316284, 
+      "samples": 8192, 
+      "sha256": "c8fbdf5fde596af6fd8dd99f42346a3d4892b0c5a4cf96544f9f5ab392edce5d"
+    }, 
+    "CPFSK": {
+      "mean_power": 1.0, 
+      "peak": 1.0, 
+      "samples": 8192, 
+      "sha256": "191bcc7c31a65aeb09be46747d34746d0108ee413bf5af19ac4fc44b269672a0"
+    }, 
+    "GFSK": {
+      "mean_power": 0.9979994297027588, 
+      "peak": 0.9990026354789734, 
+      "samples": 8192, 
+      "sha256": "948f4a0a4fdbc06acdf81db031735e88df721ba068b9e90588e0168e1db383b6"
+    }, 
+    "PAM4": {
+      "mean_power": 4.55403995513916, 
+      "peak": 4.601741313934326, 
+      "samples": 4096, 
+      "sha256": "b6f1b24d5c4b5aa0386bc43bed8997bd32d597a46469e62149a38d17f7f20b2b"
+    }, 
+    "QAM16": {
+      "mean_power": 8.748518943786621, 
+      "peak": 5.890371799468994, 
+      "samples": 2048, 
+      "sha256": "93f9ff79c867769b91b06953afe6fbcc5df5822efef968448e5c5565dceae22c"
+    }, 
+    "QAM64": {
+      "mean_power": 34.579559326171875, 
+      "peak": 12.785990715026855, 
+      "samples": 1360, 
+      "sha256": "056684dbfebefc29143a2f141d025c3ffcb3b917e1732ea58d6a39bf816b9d97"
+    }, 
+    "QPSK": {
+      "mean_power": 0.9150516986846924, 
+      "peak": 1.5659223794937134, 
+      "samples": 4096, 
+      "sha256": "412eacfafc1cacd8ed533e7e00c03ee407a6666c77c5b2d4201d42c27bac4c7c"
+    }, 
+    "WBFM": {
+      "mean_power": 1.0000015497207642, 
+      "peak": 1.000002384185791, 
+      "samples": 5120, 
+      "sha256": "901a5708d714084c35d903b877d9ec0104d96ec8374dad536459593d7e14c01a"
+    }
+  }, 
+  "numpy": "1.11.0", 
+  "pam4_mapper": {
+    "mean_power": 5.0, 
+    "peak": 3.0, 
+    "samples": 32, 
+    "sha256": "7ad0807e2e77627aefa7ccec71e51701986898766361962fc9f0041c383f26cf"
+  }, 
+  "python": "2.7.12 (default, Mar  1 2021, 11:38:31) \n[GCC 5.4.0 20160609]", 
+  "scipy": "0.17.0", 
+  "scope": "candidate compatibility; not original dataset provenance", 
+  "zero_frequency_sine": {
+    "float32_bits": "0x31f80cb5", 
+    "samples": 512, 
+    "value": 7.219194575469601e-09
+  }
+}

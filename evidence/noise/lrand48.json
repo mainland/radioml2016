@@ -1,0 +1,200 @@
+{
+  "examples": [
+    {
+      "conditional_initial_low30_state": 712033158, 
+      "conditional_zero_start_position_mod_2_30": 461889582, 
+      "consecutive_prefix_samples": 128, 
+      "frame": 0
+    }, 
+    {
+      "conditional_initial_low30_state": 314147498, 
+      "conditional_zero_start_position_mod_2_30": 461891570, 
+      "consecutive_prefix_samples": 128, 
+      "frame": 1
+    }, 
+    {
+      "conditional_initial_low30_state": 785361703, 
+      "conditional_zero_start_position_mod_2_30": 461892685, 
+      "consecutive_prefix_samples": 128, 
+      "frame": 2
+    }, 
+    {
+      "conditional_initial_low30_state": 757426470, 
+      "conditional_zero_start_position_mod_2_30": 461894606, 
+      "consecutive_prefix_samples": 128, 
+      "frame": 3
+    }, 
+    {
+      "conditional_initial_low30_state": 565058023, 
+      "conditional_zero_start_position_mod_2_30": 461895693, 
+      "consecutive_prefix_samples": 128, 
+      "frame": 4
+    }, 
+    {
+      "conditional_initial_low30_state": 378473578, 
+      "conditional_zero_start_position_mod_2_30": 461896114, 
+      "consecutive_prefix_samples": 128, 
+      "frame": 5
+    }, 
+    {
+      "conditional_initial_low30_state": null, 
+      "conditional_zero_start_position_mod_2_30": null, 
+      "consecutive_prefix_samples": 2, 
+      "frame": 6
+    }, 
+    {
+      "conditional_initial_low30_state": 811653990, 
+      "conditional_zero_start_position_mod_2_30": 109814286, 
+      "consecutive_prefix_samples": 3, 
+      "frame": 7
+    }, 
+    {
+      "conditional_initial_low30_state": null, 
+      "conditional_zero_start_position_mod_2_30": null, 
+      "consecutive_prefix_samples": 2, 
+      "frame": 8
+    }, 
+    {
+      "conditional_initial_low30_state": 905817564, 
+      "conditional_zero_start_position_mod_2_30": 677824924, 
+      "consecutive_prefix_samples": 3, 
+      "frame": 9
+    }, 
+    {
+      "conditional_initial_low30_state": null, 
+      "conditional_zero_start_position_mod_2_30": null, 
+      "consecutive_prefix_samples": 2, 
+      "frame": 10
+    }, 
+    {
+      "conditional_initial_low30_state": null, 
+      "conditional_zero_start_position_mod_2_30": null, 
+      "consecutive_prefix_samples": 2, 
+      "frame": 11
+    }, 
+    {
+      "conditional_initial_low30_state": null, 
+      "conditional_zero_start_position_mod_2_30": null, 
+      "consecutive_prefix_samples": 2, 
+      "frame": 12
+    }, 
+    {
+      "conditional_initial_low30_state": 928816582, 
+      "conditional_zero_start_position_mod_2_30": 61412974, 
+      "consecutive_prefix_samples": 3, 
+      "frame": 13
+    }, 
+    {
+      "conditional_initial_low30_state": 990694194, 
+      "conditional_zero_start_position_mod_2_30": 715726586, 
+      "consecutive_prefix_samples": 9, 
+      "frame": 14
+    }, 
+    {
+      "conditional_initial_low30_state": null, 
+      "conditional_zero_start_position_mod_2_30": null, 
+      "consecutive_prefix_samples": 2, 
+      "frame": 15
+    }, 
+    {
+      "conditional_initial_low30_state": 84947537, 
+      "conditional_zero_start_position_mod_2_30": 4679239, 
+      "consecutive_prefix_samples": 7, 
+      "frame": 16
+    }, 
+    {
+      "conditional_initial_low30_state": null, 
+      "conditional_zero_start_position_mod_2_30": null, 
+      "consecutive_prefix_samples": 2, 
+      "frame": 17
+    }, 
+    {
+      "conditional_initial_low30_state": 359494465, 
+      "conditional_zero_start_position_mod_2_30": 150056439, 
+      "consecutive_prefix_samples": 5, 
+      "frame": 18
+    }, 
+    {
+      "conditional_initial_low30_state": null, 
+      "conditional_zero_start_position_mod_2_30": null, 
+      "consecutive_prefix_samples": 2, 
+      "frame": 19
+    }
+  ], 
+  "frames": 1000, 
+  "frames_with_unique_prefix_start_state": 784, 
+  "fully_consecutive_frames": 220, 
+  "interpretation": "States assume uninterrupted draws over the reported prefix. Only low 30 bits are identifiable from 8192-entry pool indices. The zero-start position is a phase modulo 2^30, not a total draw count or proof that the original RNG started at zero. Mismatches alone do not establish scheduler interleaving.", 
+  "prefix_length_histogram": {
+    "10": 18, 
+    "103": 2, 
+    "104": 1, 
+    "11": 15, 
+    "114": 1, 
+    "12": 21, 
+    "128": 220, 
+    "13": 20, 
+    "14": 20, 
+    "15": 9, 
+    "16": 8, 
+    "17": 11, 
+    "18": 7, 
+    "19": 5, 
+    "2": 216, 
+    "20": 9, 
+    "21": 7, 
+    "22": 6, 
+    "23": 1, 
+    "24": 8, 
+    "25": 5, 
+    "26": 9, 
+    "27": 4, 
+    "28": 2, 
+    "29": 5, 
+    "3": 83, 
+    "30": 7, 
+    "31": 1, 
+    "32": 2, 
+    "33": 7, 
+    "35": 2, 
+    "36": 4, 
+    "37": 5, 
+    "38": 5, 
+    "4": 60, 
+    "40": 1, 
+    "42": 1, 
+    "43": 1, 
+    "45": 2, 
+    "46": 1, 
+    "48": 1, 
+    "5": 50, 
+    "50": 5, 
+    "51": 2, 
+    "55": 1, 
+    "6": 25, 
+    "60": 1, 
+    "61": 2, 
+    "62": 3, 
+    "63": 1, 
+    "65": 2, 
+    "68": 1, 
+    "7": 34, 
+    "70": 1, 
+    "72": 1, 
+    "73": 1, 
+    "75": 1, 
+    "76": 1, 
+    "77": 1, 
+    "8": 19, 
+    "81": 1, 
+    "84": 1, 
+    "86": 1, 
+    "87": 1, 
+    "9": 28, 
+    "92": 1, 
+    "95": 1, 
+    "98": 1
+  }, 
+  "recurrence": "x = (0x5deece66d*x + 11) mod 2^30; index = x >> 17", 
+  "samples_per_frame": 128
+}
