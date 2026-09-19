@@ -149,12 +149,35 @@ response to a deterministic 1 kHz message and verifies restored message
 transfer. It does not yet measure unwanted-sideband suppression, recovered
 audio quality, or achieved SNR.
 
+### Variable digital-transmitter parameters
+
+Pass `--sps MIN MAX` to draw one integer samples-per-symbol value from the
+inclusive range for each digital transmission. `MIN` must be at least 1, or at
+least 2 when GFSK is selected. Pass `--ebw MIN MAX` to draw one pulse-shaping
+parameter uniformly from the closed interval for each compatible digital
+transmission. For BPSK, QPSK, 8PSK, PAM4, QAM16, and QAM64, it is the RRC
+roll-off (excess bandwidth). For GFSK, it is the Gaussian filter's
+bandwidth-symbol-duration product BT. The modulation determines which parameter
+`--ebw` controls. The bounds must satisfy `0 < MIN <= MAX <= 1`. CPFSK ignores
+this option. The options can be used independently or together:
+
+```sh
+./build_dataset --sps 2 12 --ebw 0.1 0.5 \
+  --seed 201610 --channel-seed 0x1337
+```
+
+Both draws use the Python RNG controlled by `--python-seed`. When an option is
+omitted, its parameter keeps the default (SPS 8 or roll-off/BT 0.35) without
+additional random values, preserving the default generator's byte output. The
+pickle format does not store SPS or EBW metadata, so record the ranges and
+seeds with the generated artifact.
+
 ## Seeds
 
 | Option | Default and purpose |
 | --- | --- |
 | `--seed` | `201610`; supplies Python and NumPy defaults |
-| `--python-seed` | Overrides the sampler's initial offsets and window increments |
+| `--python-seed` | Overrides sampler positions and, when enabled, SPS/EBW draws |
 | `--numpy-seed` | Overrides the digital source masks; analog sources draw no mask |
 | `--channel-seed` | `0x1337` (4919); channel base seed |
 | `--channel-seed-policy` | `restart`; reuse the base for each transmission, or `advance` to change it |
@@ -214,7 +237,9 @@ with 80 windows per key, exercising multiple transmissions, and checks
 independent Python, NumPy, and channel seed changes. It checks that the
 default restarts the channel seed and that explicit advancement repeats its
 separate fixture. It also checks AM-SSB
-message transfer and repeats a generation using `--fixed-am-ssb`.
+message transfer, repeats a generation using `--fixed-am-ssb`, and verifies
+that SPS and EBW variation are independently effective and jointly
+byte-reproducible.
 
 Byte identity applies to the tested Linux amd64 image, source inputs, and
 execution settings. Other architectures or rebuilt dependencies may differ.

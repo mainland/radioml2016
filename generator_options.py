@@ -36,6 +36,12 @@ def configure():
                         default=list(MODULATIONS))
     parser.add_argument('--scheduler', choices=('tpb', 'sts'), default='sts',
                         help='GNU Radio scheduler (default: sts)')
+    parser.add_argument('--sps', type=int, nargs=2, metavar=('MIN', 'MAX'),
+                        help='draw integer samples per symbol from inclusive '
+                        'MIN..MAX for digital modulations')
+    parser.add_argument('--ebw', type=float, nargs=2, metavar=('MIN', 'MAX'),
+                        help='draw RRC roll-off or GFSK Gaussian-filter BT '
+                        'uniformly from MIN..MAX')
     parser.add_argument('--fixed-am-ssb', action='store_true',
                         help='use the minimal zero-frequency cosine repair '
                         '(the original implementation remains the default)')
@@ -64,6 +70,16 @@ def configure():
     if any(snr not in range(-20, 20, 2) for snr in args.snrs):
         parser.error('--snrs must use the original -20..18 labels in steps of 2')
     args.snrs = sorted(set(args.snrs))
+    if args.sps is not None:
+        minimum, maximum = args.sps
+        if minimum < 1 or maximum < minimum:
+            parser.error('--sps requires 1 <= MIN <= MAX')
+        if 'GFSK' in args.modulations and minimum < 2:
+            parser.error('--sps MIN must be at least 2 when GFSK is selected')
+    if args.ebw is not None:
+        minimum, maximum = args.ebw
+        if not 0.0 < minimum <= maximum <= 1.0:
+            parser.error('--ebw requires 0 < MIN <= MAX <= 1')
     if sys.version_info[:2] != (2, 7):
         parser.error('use Python 2.7 in the Dockerfile.reproducible image')
     if any(os.environ.get(key) != value for key, value in ENVIRONMENT.items()):

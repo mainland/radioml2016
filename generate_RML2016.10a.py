@@ -59,10 +59,16 @@ for snr in snr_vals:
               src = source_alphabet(
                   alphabet_type, tx_len, True,
                   source_offset=analog_source_offset)
+              mod_kwargs = {}
+              if options.sps is not None and alphabet_type == "discrete":
+                  mod_kwargs["samples_per_symbol"] = random.randint(*options.sps)
+              if (options.ebw is not None and alphabet_type == "discrete" and
+                      mod_type.modname != "CPFSK"):
+                  mod_kwargs["excess_bw"] = random.uniform(*options.ebw)
               if options.fixed_am_ssb and mod_type.modname == "AM-SSB":
                   mod = transmitter_amssb_fixed()
               else:
-                  mod = mod_type()
+                  mod = mod_type(**mod_kwargs)
               fD = 1
               delays = [0.0, 0.9, 1.7]
               mags = [1, 0.8, 0.3]

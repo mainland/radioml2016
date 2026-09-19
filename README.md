@@ -82,8 +82,10 @@ The representative 80-window, two-label compatibility fixture has SHA-256
 The test suite treats this as a golden value, not merely as equality between
 two fresh runs.
 
-Do not pass `--fixed-am-ssb` or `--vary-analog-source` for this profile. The
-options repair known historical behavior or repeated source content. Their
+Do not pass `--fixed-am-ssb`, `--vary-analog-source`, `--sps`, or `--ebw` for
+this profile. The first two options repair known historical behavior or
+repeated source content. The range options change transmitter parameters and
+consume additional Python RNG draws, even when both endpoints are equal. Those
 variants are reproducible, but they are not the closest mirror of the
 distributed dataset's generator.
 
@@ -158,6 +160,21 @@ flowgraph.
 
 The regression test demonstrates deterministic message transfer, but it does
 not establish sideband suppression or SNR calibration.
+
+### Vary SPS and pulse shaping
+
+Use `--sps MIN MAX` to draw an integer samples-per-symbol value from the
+inclusive range for each digital transmission. Use `--ebw MIN MAX` to draw RRC
+roll-off for linear modulations or Gaussian-filter BT for GFSK. These are
+distinct parameters. For example:
+
+```sh
+./build_dataset --sps 2 12 --ebw 0.1 0.5 --output varied.dat
+```
+
+Both draws use `--python-seed`. Omitting an option consumes no additional
+random draw and retains its generator default: SPS 8 and roll-off or BT 0.35.
+CPFSK ignores `--ebw`.
 
 See [reproducible generation](docs/reproducible-generation.md) for seed routing,
 runtime changes, and the scope of reproducibility.

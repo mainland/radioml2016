@@ -113,7 +113,7 @@ def check_baseline_defaults():
         'frames_per_key': 1000, 'snrs': list(range(-20, 20, 2)),
         'modulations': ['BPSK', 'QPSK', '8PSK', 'PAM4', 'QAM16', 'QAM64',
                         'GFSK', 'CPFSK', 'WBFM', 'AM-DSB', 'AM-SSB'],
-        'fixed_am_ssb': False,
+        'sps': None, 'ebw': None, 'fixed_am_ssb': False,
         'vary_analog_source': False,
         'output': 'RML2016.10a_dict.dat',
     }
@@ -202,6 +202,16 @@ def main():
         '--fixed-am-ssb', '--modulations', 'AM-SSB', '--snrs', '18']
     fixed = run('fixed-am-ssb-0', fixed_args, expected_keys=1)
     assert run('fixed-am-ssb-1', fixed_args, expected_keys=1) == fixed
+    digital_args = ['--modulations', 'BPSK', 'GFSK', 'CPFSK', '--snrs', '18']
+    digital = run('digital-default', digital_args, expected_keys=3)
+    varied_sps = run('vary-sps', ['--sps', '2', '12'] + digital_args,
+                     expected_keys=3)
+    varied_ebw = run('vary-ebw', ['--ebw', '.1', '.5'] + digital_args,
+                     expected_keys=3)
+    varied_args = ['--sps', '2', '12', '--ebw', '.1', '.5'] + digital_args
+    varied = run('vary-sps-ebw-0', varied_args, expected_keys=3)
+    assert len({digital, varied_sps, varied_ebw, varied}) == 4
+    assert run('vary-sps-ebw-1', varied_args, expected_keys=3) == varied
     for name, extra in (
             ('zero-channel', ['--channel-seed', '0']),
             ('unknown-channel-policy', ['--channel-seed-policy', 'random']),
@@ -209,7 +219,10 @@ def main():
             ('large-numpy', ['--numpy-seed', '4294967296']),
             ('large-analog-source', [
                 '--analog-source-seed', '4294967296']),
-            ('zero-frames', ['--frames-per-key', '0'])):
+            ('zero-frames', ['--frames-per-key', '0']),
+            ('reversed-sps', ['--sps', '8', '2']),
+            ('gfsk-sps-one', ['--sps', '1', '1', '--modulations', 'GFSK']),
+            ('zero-ebw', ['--ebw', '0', '1'])):
         run(name, extra, failure=True)
     run('wrong-environment', failure=True, env=dict(os.environ, VOLK_GENERIC='0'))
     analog_source = os.environ['RADIOML_ANALOG_SOURCE']
