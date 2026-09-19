@@ -21,6 +21,7 @@ BIT_SEED = 201610
 AUDIO_RATE_HZ = 44100.0
 AM_RATE_HZ = 200000.0
 WBFM_RATE_HZ = 220500.0
+FIXED_WBFM_RATE_HZ = 200000.0
 
 
 def stream_bytes(transmitter, values):
@@ -360,27 +361,39 @@ def inverse_preemphasis(values, sample_rate, tau=75e-6):
     return signal.lfilter(denominator, numerator, values)
 
 
-def demodulate_wbfm(transmitter, audio):
+def demodulate_wbfm(transmitter, audio, sample_rate):
     """Recover WBFM audio with offline quadrature and de-emphasis filters."""
     output = stream_floats(transmitter, audio)
-    sensitivity = 2 * math.pi * 75000.0 / WBFM_RATE_HZ
+    sensitivity = 2 * math.pi * 75000.0 / sample_rate
     phase_step = np.angle(output[1:] * np.conj(output[:-1])) / sensitivity
     recovered_quad = inverse_preemphasis(phase_step.astype(np.float64),
-                                         WBFM_RATE_HZ)
+                                         sample_rate)
     best = None
-    for phase in range(5):
-        recovered = recovered_quad[phase::5]
-        alignment = best_real_alignment(audio.astype(np.float64), recovered, 300)
-        candidate = (alignment['nrmse'], phase, alignment)
-        if best is None or candidate[:2] < best[:2]:
+    if sample_rate == WBFM_RATE_HZ:
+        candidates = (recovered_quad[phase::5] for phase in range(5))
+    else:
+        # The repaired rate is not an integer multiple of 44.1 kHz. Linear
+        # interpolation is adequate for this independent 5 kHz-band test
+        # message and does not reuse GNU Radio's rational-resampler taps.
+        output_count = int(math.floor(
+            recovered_quad.size * AUDIO_RATE_HZ / sample_rate))
+        positions = (np.arange(output_count, dtype=np.float64) *
+                     sample_rate / AUDIO_RATE_HZ)
+        candidates = (np.interp(positions,
+                                np.arange(recovered_quad.size),
+                                recovered_quad),)
+    for recovered in candidates:
+        alignment = best_real_alignment(
+            audio.astype(np.float64), recovered, 300)
+        candidate = (alignment['nrmse'], alignment)
+        if best is None or candidate[0] < best[0]:
             best = candidate
-    phase = best[1]
-    alignment = best[2]
-    magnitude = np.abs(output)
+    alignment = best[1]
+    guard = min(512, output.size // 10)
+    magnitude = np.abs(output[guard:-guard])
     return {
         'samples': int(output.size),
-        'output_rate_hz': int(WBFM_RATE_HZ),
-        'decimation_phase': int(phase),
+        'output_rate_hz': int(sample_rate),
         'recovery': alignment,
         'envelope_relative_stddev': float(magnitude.std() / magnitude.mean()),
     }
@@ -402,6 +415,16 @@ def validate(report):
     assert wbfm['recovery']['correlation'] > .999, wbfm
     assert wbfm['recovery']['nrmse'] < .01, wbfm
     assert wbfm['envelope_relative_stddev'] < 1e-4, wbfm
+    fixed_wbfm = report['WBFM-fixed']
+    expected_samples = 8192 * FIXED_WBFM_RATE_HZ / AUDIO_RATE_HZ
+    assert abs(fixed_wbfm['samples'] - expected_samples) < 64, fixed_wbfm
+    assert fixed_wbfm['output_rate_hz'] == int(FIXED_WBFM_RATE_HZ), fixed_wbfm
+    assert fixed_wbfm['recovery']['correlation'] > .999, fixed_wbfm
+    assert fixed_wbfm['recovery']['nrmse'] < .02, fixed_wbfm
+    # Band-limiting a wideband constant-envelope waveform before decimation
+    # introduces bounded envelope ripple even though message recovery remains
+    # accurate. This threshold retains margin around the measured 0.0475.
+    assert fixed_wbfm['envelope_relative_stddev'] < .06, fixed_wbfm
     for name in ('AM-DSB', 'AM-SSB'):
         result = report[name]
         assert result['recovery']['correlation'] > .999, (name, result)
@@ -496,14 +519,17 @@ def run_checks():
             output, bits, SAMPLES_PER_SYMBOL)
 
     audio = multitone(AUDIO_RATE_HZ, 8192)
-    results['WBFM'] = demodulate_wbfm(transmitters.transmitter_fm(), audio)
+    results['WBFM'] = demodulate_wbfm(
+        transmitters.transmitter_fm(), audio, WBFM_RATE_HZ)
+    results['WBFM-fixed'] = demodulate_wbfm(
+        transmitters.transmitter_fm_fixed(), audio, FIXED_WBFM_RATE_HZ)
     results['AM-DSB'] = demodulate_am(transmitters.transmitter_am(), audio)
     results['AM-SSB'] = demodulate_am(
         transmitters.transmitter_amssb_fixed(), audio)
 
     assert set(results) == {'BPSK', 'QPSK', '8PSK', 'PAM4', 'QAM16',
                             'QAM64', 'GFSK', 'CPFSK', 'WBFM', 'AM-DSB',
-                            'AM-SSB'}
+                            'AM-SSB', 'WBFM-fixed'}
     validate(results)
     parameter_sweep = validate_parameter_sweep(
         transmitters, classes, constellations, bits)

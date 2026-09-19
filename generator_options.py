@@ -45,6 +45,9 @@ def configure():
     parser.add_argument('--fixed-am-ssb', action='store_true',
                         help='use the minimal zero-frequency cosine repair '
                         '(the original implementation remains the default)')
+    parser.add_argument('--fixed-wbfm', action='store_true',
+                        help='resample WBFM to the 200 ksample/s channel rate '
+                        '(the original 220.5 ksample/s path remains the default)')
     parser.add_argument('--vary-analog-source', action='store_true',
                         help='draw nonoverlapping 10000-sample source segments '
                         'for analog transmissions')

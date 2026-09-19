@@ -136,7 +136,7 @@ def check_baseline_defaults():
         'frames_per_key': 1000, 'snrs': list(range(-20, 20, 2)),
         'modulations': ['BPSK', 'QPSK', '8PSK', 'PAM4', 'QAM16', 'QAM64',
                         'GFSK', 'CPFSK', 'WBFM', 'AM-DSB', 'AM-SSB'],
-        'sps': None, 'ebw': None, 'fixed_am_ssb': False,
+        'sps': None, 'ebw': None, 'fixed_am_ssb': False, 'fixed_wbfm': False,
         'vary_analog_source': False,
         'output': 'RML2016.10a_dict.dat',
     }
@@ -206,6 +206,10 @@ def main():
         changed = run(seed + '-0', seed_args)
         assert changed != stable_reference
         assert run(seed + '-1', seed_args) == changed
+    fixed_args = stable_args + [
+        '--fixed-am-ssb', '--modulations', 'AM-SSB', '--snrs', '18']
+    fixed = run('fixed-am-ssb-0', fixed_args, expected_keys=1)
+    assert run('fixed-am-ssb-1', fixed_args, expected_keys=1) == fixed
     historical_wbfm = run(
         'historical-wbfm', stable_args + [
             '--modulations', 'WBFM', '--snrs', '18'],
@@ -222,11 +226,14 @@ def main():
         varied_analog_args + ['--analog-source-seed', '123'],
         expected_keys=1)
     assert other_analog != varied_analog
-    fixed_args = [
-        '--fixed-am-ssb', '--modulations', 'AM-SSB', '--snrs', '18']
-    fixed = run('fixed-am-ssb-0', fixed_args, expected_keys=1)
-    assert run('fixed-am-ssb-1', fixed_args, expected_keys=1) == fixed
-    digital_args = ['--modulations', 'BPSK', 'GFSK', 'CPFSK', '--snrs', '18']
+    fixed_wbfm_args = [
+        '--scheduler', 'sts', '--fixed-wbfm', '--modulations', 'WBFM',
+        '--snrs', '18']
+    fixed_wbfm = run('fixed-wbfm-0', fixed_wbfm_args, expected_keys=1)
+    assert fixed_wbfm != historical_wbfm
+    assert run('fixed-wbfm-1', fixed_wbfm_args, expected_keys=1) == fixed_wbfm
+    digital_args = stable_args + [
+        '--modulations', 'BPSK', 'GFSK', 'CPFSK', '--snrs', '18']
     digital = run('digital-default', digital_args, expected_keys=3)
     varied_sps = run('vary-sps', ['--sps', '2', '12'] + digital_args,
                      expected_keys=3)

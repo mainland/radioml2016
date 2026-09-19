@@ -173,6 +173,18 @@ additional random values, preserving the default generator's byte output. The
 pickle format does not store SPS or EBW metadata, so record the ranges and
 seeds with the generated artifact.
 
+### WBFM rate repair
+
+The original WBFM block converts 44.1 ksample/s audio to a 220.5 ksample/s
+complex stream, while the channel model is configured for 200 ksample/s. This
+mismatch remains the default for generator compatibility. Pass `--fixed-wbfm`
+to apply a deterministic 400/441 rational resampler between the modulator and
+channel. The repair changes the channel input rate to 200 ksample/s without
+changing the native WBFM modulator. It repairs the modulator-to-channel
+interface. It leaves the canonical source's twice-speed interpretation and
+unfiltered sample selection unchanged, as described under
+[canonical analog source](#canonical-analog-source).
+
 ## SNR-label semantics
 
 The SNR key preserves the historical generator label, but it is not a
@@ -257,7 +269,7 @@ with 80 windows per key, exercising multiple transmissions, and checks
 independent Python, NumPy, and channel seed changes. It checks that the
 default restarts the channel seed and that explicit advancement repeats its
 separate fixture. It also checks AM-SSB
-message transfer, repeats a generation using `--fixed-am-ssb`, and verifies
+message transfer, repeats generations using both repair options, and verifies
 that SPS and EBW variation are independently effective and jointly
 byte-reproducible.
 

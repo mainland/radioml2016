@@ -82,12 +82,12 @@ The representative 80-window, two-label compatibility fixture has SHA-256
 The test suite treats this as a golden value, not merely as equality between
 two fresh runs.
 
-Do not pass `--fixed-am-ssb`, `--vary-analog-source`, `--sps`, or `--ebw` for
-this profile. The first two options repair known historical behavior or
-repeated source content. The range options change transmitter parameters and
-consume additional Python RNG draws, even when both endpoints are equal. Those
-variants are reproducible, but they are not the closest mirror of the
-distributed dataset's generator.
+Do not pass `--fixed-am-ssb`, `--fixed-wbfm`, `--vary-analog-source`, `--sps`,
+or `--ebw` for this profile. The first three options repair known historical
+behavior or repeated source content. The range options change transmitter
+parameters and consume additional Python RNG draws, even when both endpoints
+are equal. Those variants are reproducible, but they are not the closest
+mirror of the distributed dataset's generator.
 
 For a smaller run:
 
@@ -161,6 +161,14 @@ flowgraph.
 The reproducibility regression demonstrates deterministic message transfer.
 The separate conformance and channel controls measure sideband suppression and
 the historical SNR-label semantics.
+
+### WBFM rate repair
+
+The original WBFM block emits 220.5 ksample/s into a channel configured for
+200 ksample/s. This mismatch remains the default for generator compatibility.
+Add `--fixed-wbfm` to insert an exact 400/441 rational resampler before the
+channel. The repair changes the channel input rate to 200 ksample/s without
+changing the native WBFM modulator.
 
 ### Vary SPS and pulse shaping
 

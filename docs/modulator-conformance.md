@@ -74,6 +74,12 @@ recovered audio with the input multitone. Correlation must exceed 0.999,
 normalized RMS error must remain below 0.01, and relative envelope variation
 must remain below `1e-4`.
 
+The opt-in fixed WBFM path then resamples from 220.5 to 200 ksample/s with the
+exact ratio 400/441. Its independently interpolated receiver must retain audio
+correlation above 0.999 and normalized RMS error below 0.02. The finite rational
+filter may omit fewer than 64 tail samples. Band limitation introduces envelope
+ripple, which must remain below 0.06 relative standard deviation.
+
 The AM receivers coherently recover the real message after fitting delay and
 gain. Correlation must exceed 0.999, normalized RMS error must remain below
 0.05, and carrier amplitude must remain within 0.95 to 1.05. AM-DSB sideband
@@ -88,14 +94,17 @@ exact requirements because the check adds no noise or channel impairments.
 
 The check establishes clean message transfer and the listed modulation-specific
 properties. It does not establish receiver performance under channel
-impairments, calibrate dataset SNR labels, or replace broader randomized
-testing. The parameter sweep covers the stated ranges, not every value the CLI
-can accept.
+impairments or replace broader randomized testing. Channel controls and
+SNR-label calibration are separate because they test the generator rather than
+the transmitters.
 
-The WBFM transmitter produces five output samples per 44.1 kHz input sample,
-which is 220.5 kHz. The dataset generator configures its channel model for 200
-kHz. The conformance receiver uses the transmitter's actual 220.5 kHz rate and
-therefore does not resolve that generator-level mismatch.
+The historical WBFM transmitter produces five output samples per 44.1 kHz input
+sample, which is 220.5 kHz. The dataset generator configures its channel model
+for 200 kHz. The conformance report tests both that historical path and the
+opt-in 200 ksample/s repair. The tests supply synthetic audio directly to the
+modulator, so they do not test or repair the canonical source's
+[time-scale change](reproducible-generation.md#canonical-analog-source).
+The historical path remains the default.
 
 The AM-SSB check selects the local `--fixed-am-ssb` implementation. That
 implementation is the provenance-pinned minimal cosine repair documented in

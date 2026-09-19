@@ -97,6 +97,26 @@ class transmitter_fm(gr.hier_block2):
         self.connect( self, self.mod, self )
         self.rate = 200e3/44.1e3
 
+def wbfm_rate_resampler():
+    """Return the pinned 220.5-to-200 ksample/s complex resampler."""
+    return filter.rational_resampler_ccc(interpolation=400, decimation=441)
+
+
+class transmitter_fm_fixed(gr.hier_block2):
+    """Emit the historical WBFM waveform at the dataset's 200 ksample/s rate."""
+    modname = "WBFM"
+    def __init__(self):
+        gr.hier_block2.__init__(self, "transmitter_fm_fixed",
+        gr.io_signature(1, 1, gr.sizeof_float),
+        gr.io_signature(1, 1, gr.sizeof_gr_complex))
+        self.mod = analog.wfm_tx(audio_rate=44100.0, quad_rate=220.5e3)
+        # Provenance: the released transmitter chooses the integer five-to-one
+        # WBFM interpolation rate. This exact rational conversion repairs its
+        # 220.5 ksample/s output to the generator's 200 ksample/s channel rate.
+        self.resampler = wbfm_rate_resampler()
+        self.connect(self, self.mod, self.resampler, self)
+        self.rate = 200e3/44.1e3
+
 class transmitter_am(gr.hier_block2):
     modname = "AM-DSB"
     def __init__(self):

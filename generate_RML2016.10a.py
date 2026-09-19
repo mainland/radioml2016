@@ -2,7 +2,8 @@
 from generator_options import configure
 options = configure()
 from generator_options import ANALOG_SOURCE_SAMPLES
-from transmitters import transmitter_amssb_fixed, transmitters
+from transmitters import (transmitter_amssb_fixed, transmitters,
+                          wbfm_rate_resampler)
 from source_alphabet import source_alphabet
 from dataset_window import normalized_complex_window
 from gnuradio import channels, gr, blocks
@@ -81,13 +82,27 @@ for snr in snr_vals:
 
               snk = blocks.vector_sink_c()
 
-              tb = gr.top_block()
-
-              # connect blocks
-              if apply_channel:
-                  tb.connect(src, mod, chan, snk)
+              if options.fixed_wbfm and mod_type.modname == "WBFM":
+                  # Finish decoding and historical FM modulation before
+                  # resampling. This prevents finite-stream back-pressure from
+                  # making the repaired output depend on unrelated flowgraphs.
+                  native_snk = blocks.vector_sink_c()
+                  native_tb = gr.top_block()
+                  native_tb.connect(src, mod, native_snk)
+                  native_tb.run()
+                  native = blocks.vector_source_c(native_snk.data(), False)
+                  resampler = wbfm_rate_resampler()
+                  tb = gr.top_block()
+                  if apply_channel:
+                      tb.connect(native, resampler, chan, snk)
+                  else:
+                      tb.connect(native, resampler, snk)
               else:
-                  tb.connect(src, mod, snk)
+                  tb = gr.top_block()
+                  if apply_channel:
+                      tb.connect(src, mod, chan, snk)
+                  else:
+                      tb.connect(src, mod, snk)
               tb.run()
 
               raw_output_vector = np.array(snk.data(), dtype=np.complex64)
