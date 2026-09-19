@@ -120,6 +120,35 @@ source-selection random values are consumed. This preserves the compatibility
 pickle bytes. The pickle has no attribute channel, so retain the command and
 seed with the artifact.
 
+### AM-SSB implementation
+
+The original AM-SSB flowgraph multiplies the signal by a float sine source at
+zero frequency. In the pinned GNU Radio runtime that source is only a small
+fixed-point residue, so the channel receives almost no modulated signal. This
+behavior remains the default for generator compatibility.
+
+Pass `--fixed-am-ssb` to select a minimal repair. The repaired path is identical
+to the historical path except that the real zero-frequency oscillator uses
+cosine instead of sine. It therefore retains the fractional interpolator,
+constant addition, real multiplier, and Hilbert-transform blocks:
+
+```sh
+./build_dataset --fixed-am-ssb --seed 201610 --channel-seed 0x1337
+```
+
+The defect was introduced by RadioML commit
+`c75520108ce85f64dc822b2ac97caa36a872b257`. The cosine change is the minimal
+repair implied by the published source and failure mechanism. It is a local
+repair, not an upstream patch or a reconstruction of Ramiro Utrilla's
+replacement flowgraph. The option changes only the transmitter selected for
+the `AM-SSB` keys. The output schema and modulation label remain unchanged, so
+record the command line with the generated artifact.
+
+The regression check subtracts the carrier-only response to silence from the
+response to a deterministic 1 kHz message and verifies restored message
+transfer. It does not yet measure unwanted-sideband suppression, recovered
+audio quality, or achieved SNR.
+
 ## Seeds
 
 | Option | Default and purpose |
@@ -166,8 +195,9 @@ Different finite-stream work schedules can change a later transmission when
 generation parameters alter source or sampler behavior. STS fixes the block
 execution order and is therefore part of the reproducibility contract.
 
-The generator retains the original loop order, source lengths, modulators,
-channel parameters apart from seeds, window sampling, and normalization by
+By default, the generator retains the original loop order, source lengths,
+modulators, channel parameters apart from seeds, window sampling, and
+normalization by
 `sum(abs(window))`. CLI parsing and runtime checks live in
 [generator_options.py](../generator_options.py). Source and transmitter code
 retain their historical defaults. The image sets `PYTHONHASHSEED=0`,
@@ -183,7 +213,8 @@ compares three fresh processes across all 11 modulations at SNRs -20 and 18
 with 80 windows per key, exercising multiple transmissions, and checks
 independent Python, NumPy, and channel seed changes. It checks that the
 default restarts the channel seed and that explicit advancement repeats its
-separate fixture.
+separate fixture. It also checks AM-SSB
+message transfer and repeats a generation using `--fixed-am-ssb`.
 
 Byte identity applies to the tested Linux amd64 image, source inputs, and
 execution settings. Other architectures or rebuilt dependencies may differ.

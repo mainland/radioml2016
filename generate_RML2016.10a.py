@@ -2,7 +2,7 @@
 from generator_options import configure
 options = configure()
 from generator_options import ANALOG_SOURCE_SAMPLES
-from transmitters import transmitters
+from transmitters import transmitter_amssb_fixed, transmitters
 from source_alphabet import source_alphabet
 from gnuradio import channels, gr, blocks
 import numpy as np
@@ -59,7 +59,10 @@ for snr in snr_vals:
               src = source_alphabet(
                   alphabet_type, tx_len, True,
                   source_offset=analog_source_offset)
-              mod = mod_type()
+              if options.fixed_am_ssb and mod_type.modname == "AM-SSB":
+                  mod = transmitter_amssb_fixed()
+              else:
+                  mod = mod_type()
               fD = 1
               delays = [0.0, 0.9, 1.7]
               mags = [1, 0.8, 0.3]

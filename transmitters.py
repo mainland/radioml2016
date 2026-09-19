@@ -137,6 +137,31 @@ class transmitter_amssb(gr.hier_block2):
         self.connect( self.src, (self.mod,1) )
 
 
+class transmitter_amssb_fixed(gr.hier_block2):
+    """AM-SSB transmitter with the zero-frequency oscillator defect repaired."""
+    modname = "AM-SSB"
+    def __init__(self):
+        gr.hier_block2.__init__(self, "transmitter_amssb_fixed",
+        gr.io_signature(1, 1, gr.sizeof_float),
+        gr.io_signature(1, 1, gr.sizeof_gr_complex))
+        self.rate = 44.1e3/200e3
+        self.interp = filter.fractional_interpolator_ff(0.0, self.rate)
+        self.mul = blocks.multiply_const_ff(1.0)
+        self.add = blocks.add_const_ff(1.0)
+        # Provenance: RadioML commit
+        # c75520108ce85f64dc822b2ac97caa36a872b257 introduced a real
+        # zero-frequency sine, which suppresses the message. This local,
+        # minimal repair changes only that oscillator to cosine. It is not an
+        # upstream patch or a reconstruction of Utrilla's replacement
+        # flowgraph.
+        self.src = analog.sig_source_f(200e3, analog.GR_COS_WAVE, 0e3, 1.0)
+        self.mod = blocks.multiply_ff()
+        self.filt = filter.hilbert_fc(401)
+        self.connect(self, self.interp, self.mul, self.add, self.mod, self.filt,
+                     self)
+        self.connect(self.src, (self.mod, 1))
+
+
 transmitters = {
     "discrete":[transmitter_bpsk, transmitter_qpsk, transmitter_8psk, transmitter_pam4, transmitter_qam16, transmitter_qam64, transmitter_gfsk, transmitter_cpfsk],
     "continuous":[transmitter_fm, transmitter_am, transmitter_amssb]

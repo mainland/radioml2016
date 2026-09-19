@@ -82,9 +82,10 @@ The representative 80-window, two-label compatibility fixture has SHA-256
 The test suite treats this as a golden value, not merely as equality between
 two fresh runs.
 
-Do not pass `--vary-analog-source` for this profile. That option changes the
-repeated analog source content. The variant is reproducible, but it is not the
-closest mirror of the distributed dataset's generator.
+Do not pass `--fixed-am-ssb` or `--vary-analog-source` for this profile. The
+options repair known historical behavior or repeated source content. Their
+variants are reproducible, but they are not the closest mirror of the
+distributed dataset's generator.
 
 For a smaller run:
 
@@ -144,6 +145,19 @@ reusing source material if a run requires more segments. Omitting the option
 consumes no source-selection draws and preserves the compatibility pickle
 hash. The pickle contains only windows and labels, so retain the command and
 seed with the generated artifact.
+
+### AM-SSB repair
+
+The original AM-SSB flowgraph nearly suppresses the message because it uses a
+real sine oscillator at zero frequency. This behavior remains the default for
+generator compatibility. Add `--fixed-am-ssb` to change that oscillator to
+cosine without changing the remaining blocks, label, seeds, or evaluation
+order. The repair follows from the published source and measured failure
+mechanism. It is not an upstream patch or a reconstruction of a replacement
+flowgraph.
+
+The regression test demonstrates deterministic message transfer, but it does
+not establish sideband suppression or SNR calibration.
 
 See [reproducible generation](docs/reproducible-generation.md) for seed routing,
 runtime changes, and the scope of reproducibility.

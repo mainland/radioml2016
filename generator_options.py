@@ -36,6 +36,9 @@ def configure():
                         default=list(MODULATIONS))
     parser.add_argument('--scheduler', choices=('tpb', 'sts'), default='sts',
                         help='GNU Radio scheduler (default: sts)')
+    parser.add_argument('--fixed-am-ssb', action='store_true',
+                        help='use the minimal zero-frequency cosine repair '
+                        '(the original implementation remains the default)')
     parser.add_argument('--vary-analog-source', action='store_true',
                         help='draw nonoverlapping 10000-sample source segments '
                         'for analog transmissions')

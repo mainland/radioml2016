@@ -44,6 +44,38 @@ def check_runtime():
     assert abs(np.corrcoef(a, b)[0, 1]) < .05, 'Correlated drift streams'
 
 
+def check_am_ssb_transmitters():
+    from transmitters import transmitter_amssb, transmitter_amssb_fixed
+
+    def generate(transmitter, samples):
+        tb = gr.top_block()
+        source = blocks.vector_source_f(samples.tolist(), False)
+        modulator = transmitter()
+        sink = blocks.vector_sink_c()
+        tb.connect(source, modulator, sink)
+        tb.run()
+        return np.asarray(sink.data(), dtype=np.complex64)
+
+    time = np.arange(4096, dtype=np.float64) / 44100.0
+    message = np.sin(2 * np.pi * 1000 * time).astype(np.float32)
+    silence = np.zeros(message.shape, dtype=np.float32)
+
+    def transferred_message(transmitter):
+        modulated = generate(transmitter, message)
+        carrier = generate(transmitter, silence)
+        size = min(modulated.size, carrier.size)
+        difference = modulated[:size] - carrier[:size]
+        return difference[512:-512]
+
+    historical = transferred_message(transmitter_amssb)
+    fixed = transferred_message(transmitter_amssb_fixed)
+    assert historical.size > 0 and fixed.size > 0
+    historical_rms = np.sqrt(np.mean(np.abs(historical)**2))
+    fixed_rms = np.sqrt(np.mean(np.abs(fixed)**2))
+    assert historical_rms < 1e-6, 'Historical AM-SSB transferred its message'
+    assert fixed_rms > .1, 'Fixed AM-SSB did not transfer its message'
+
+
 def check_canonical_analog_source():
     """Require exact compatibility bytes and item-based random access."""
     from source_alphabet import source_alphabet
@@ -81,6 +113,7 @@ def check_baseline_defaults():
         'frames_per_key': 1000, 'snrs': list(range(-20, 20, 2)),
         'modulations': ['BPSK', 'QPSK', '8PSK', 'PAM4', 'QAM16', 'QAM64',
                         'GFSK', 'CPFSK', 'WBFM', 'AM-DSB', 'AM-SSB'],
+        'fixed_am_ssb': False,
         'vary_analog_source': False,
         'output': 'RML2016.10a_dict.dat',
     }
@@ -99,6 +132,7 @@ def main():
     sys.path.insert(0, repo)
     check_baseline_defaults()
     check_runtime()
+    check_am_ssb_transmitters()
     check_canonical_analog_source()
     command = [sys.executable, 'generate_RML2016.10a.py', '--frames-per-key', '80',
                '--snrs', '-20', '18']
@@ -164,6 +198,10 @@ def main():
         varied_analog_args + ['--analog-source-seed', '123'],
         expected_keys=1)
     assert other_analog != varied_analog
+    fixed_args = [
+        '--fixed-am-ssb', '--modulations', 'AM-SSB', '--snrs', '18']
+    fixed = run('fixed-am-ssb-0', fixed_args, expected_keys=1)
+    assert run('fixed-am-ssb-1', fixed_args, expected_keys=1) == fixed
     for name, extra in (
             ('zero-channel', ['--channel-seed', '0']),
             ('unknown-channel-policy', ['--channel-seed-policy', 'random']),
