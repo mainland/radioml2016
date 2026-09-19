@@ -158,8 +158,9 @@ order. The repair follows from the published source and measured failure
 mechanism. It is not an upstream patch or a reconstruction of a replacement
 flowgraph.
 
-The regression test demonstrates deterministic message transfer, but it does
-not establish sideband suppression or SNR calibration.
+The reproducibility regression demonstrates deterministic message transfer.
+The separate conformance check measures recovered audio and sideband
+suppression. Neither check calibrates the dataset SNR labels.
 
 ### Vary SPS and pulse shaping
 
@@ -192,6 +193,24 @@ docker run --rm --network none --user "$(id -u):$(id -g)" \
 
 The check compares three fresh runs across all 11 modulations at two SNRs
 with 80 windows per key, then checks independent seed changes.
+
+## Check transmitter conformance
+
+Run [tests/check_modulators.py](tests/check_modulators.py) in the reproducible
+image to demodulate deterministic clean outputs from all eleven transmitters:
+
+```sh
+docker run --rm --network none --user "$(id -u):$(id -g)" \
+  -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 \
+  -v "$PWD:/work:ro" -w /work \
+  radioml2016:reproducible \
+  python2.7 -m pytest -q tests/check_modulators.py
+```
+
+The check uses independent reference computations for message recovery and
+modulation-specific properties. See
+[modulator conformance](docs/modulator-conformance.md) for its methods,
+thresholds, and limitations.
 
 ## Historical source references
 

@@ -144,10 +144,10 @@ replacement flowgraph. The option changes only the transmitter selected for
 the `AM-SSB` keys. The output schema and modulation label remain unchanged, so
 record the command line with the generated artifact.
 
-The regression check subtracts the carrier-only response to silence from the
-response to a deterministic 1 kHz message and verifies restored message
-transfer. It does not yet measure unwanted-sideband suppression, recovered
-audio quality, or achieved SNR.
+The reproducibility regression subtracts the carrier-only response to silence
+from the response to a deterministic 1 kHz message and verifies restored
+message transfer. The separate conformance check measures recovered audio and
+sideband suppression. These checks do not calibrate dataset SNR labels.
 
 ### Variable digital-transmitter parameters
 
@@ -240,6 +240,11 @@ separate fixture. It also checks AM-SSB
 message transfer, repeats a generation using `--fixed-am-ssb`, and verifies
 that SPS and EBW variation are independently effective and jointly
 byte-reproducible.
+
+Run the separate [modulator conformance check](modulator-conformance.md) to
+demodulate clean outputs from all eleven transmitters. That check tests message
+recovery and modulation-specific signal properties; it does not test byte
+identity or performance under channel impairments.
 
 Byte identity applies to the tested Linux amd64 image, source inputs, and
 execution settings. Other architectures or rebuilt dependencies may differ.
