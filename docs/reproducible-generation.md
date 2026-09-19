@@ -147,7 +147,8 @@ record the command line with the generated artifact.
 The reproducibility regression subtracts the carrier-only response to silence
 from the response to a deterministic 1 kHz message and verifies restored
 message transfer. The separate conformance check measures recovered audio and
-sideband suppression. These checks do not calibrate dataset SNR labels.
+sideband suppression. The channel control measures the historical SNR-label
+semantics.
 
 ### Variable digital-transmitter parameters
 
@@ -171,6 +172,25 @@ omitted, its parameter keeps the default (SPS 8 or roll-off/BT 0.35) without
 additional random values, preserving the default generator's byte output. The
 pickle format does not store SPS or EBW metadata, so record the ranges and
 seeds with the generated artifact.
+
+## SNR-label semantics
+
+The SNR key preserves the historical generator label, but it is not a
+calibrated post-channel SNR. The generator passes `10**(-label/10)` as the
+complex noise-source amplitude. Noise power therefore changes by 2 dB for each
+1 dB change in the label. Measured SNR also depends on the modulation and
+fading realization.
+
+`tests/check_channel_controls.py` isolates AWGN, carrier drift, sample-rate
+drift, and fading, then exercises their supported combination. For its
+deterministic BPSK control, labels -20, 0, and 18 measure approximately -34.65,
+5.35, and 41.35 dB after the signal path. These are measurements of that
+control, not universal corrections for the dataset labels.
+
+The same control demodulates 512 BPSK symbols without error in the baseline,
+each isolated impairment, and the combined channel at label 18. It also selects
+four normalized windows from a real post-channel transmission by their
+zero-based offsets and requires exact sample equality.
 
 ## Seeds
 
@@ -245,6 +265,11 @@ Run the separate [modulator conformance check](modulator-conformance.md) to
 demodulate clean outputs from all eleven transmitters. That check tests message
 recovery and modulation-specific signal properties; it does not test byte
 identity or performance under channel impairments.
+
+`tests/check_channel_controls.py` complements the clean-modulator check with
+isolated and combined deterministic impairments, SNR-label measurements, and
+exact post-channel offset reconstruction. Run both conformance tests with
+`python2.7 -m pytest -q -m 'not slow' tests`.
 
 Byte identity applies to the tested Linux amd64 image, source inputs, and
 execution settings. Other architectures or rebuilt dependencies may differ.

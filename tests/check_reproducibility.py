@@ -100,6 +100,29 @@ def check_canonical_analog_source():
     assert np.array_equal(generate(offset, count), expected)
 
 
+def check_window_offsets():
+    """Verify window offsets in the post-channel sample coordinate."""
+    from dataset_window import normalized_complex_window
+
+    real = np.arange(300, dtype=np.float32)
+    transmission = real + 1j * (1000 + real)
+    transmission = transmission.astype(np.complex64)
+    offset = 73
+    length = 128
+    window = normalized_complex_window(transmission, offset, length)
+    expected = transmission[offset:offset + length]
+    expected = expected / np.sum(np.abs(expected))
+    assert np.array_equal(window, expected.astype(np.complex64))
+    assert window[0] == expected[0] and window[-1] == expected[-1]
+    for bad_offset, bad_length in ((-1, length), (0, 0), (200, length)):
+        try:
+            normalized_complex_window(transmission, bad_offset, bad_length)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError('invalid window interval succeeded')
+
+
 def check_baseline_defaults():
     """Require an invocation without flags to select the complete Baseline."""
     options = json.loads(subprocess.check_output([
@@ -134,6 +157,7 @@ def main():
     check_runtime()
     check_am_ssb_transmitters()
     check_canonical_analog_source()
+    check_window_offsets()
     command = [sys.executable, 'generate_RML2016.10a.py', '--frames-per-key', '80',
                '--snrs', '-20', '18']
 

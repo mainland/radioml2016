@@ -159,8 +159,8 @@ mechanism. It is not an upstream patch or a reconstruction of a replacement
 flowgraph.
 
 The reproducibility regression demonstrates deterministic message transfer.
-The separate conformance check measures recovered audio and sideband
-suppression. Neither check calibrates the dataset SNR labels.
+The separate conformance and channel controls measure sideband suppression and
+the historical SNR-label semantics.
 
 ### Vary SPS and pulse shaping
 
@@ -194,7 +194,7 @@ docker run --rm --network none --user "$(id -u):$(id -g)" \
 The check compares three fresh runs across all 11 modulations at two SNRs
 with 80 windows per key, then checks independent seed changes.
 
-## Check transmitter conformance
+## Check transmitter and channel conformance
 
 Run [tests/check_modulators.py](tests/check_modulators.py) in the reproducible
 image to demodulate deterministic clean outputs from all eleven transmitters:
@@ -207,9 +207,10 @@ docker run --rm --network none --user "$(id -u):$(id -g)" \
   python2.7 -m pytest -q tests/check_modulators.py
 ```
 
-The check uses independent reference computations for message recovery and
-modulation-specific properties. See
-[modulator conformance](docs/modulator-conformance.md) for its methods,
+Run `python2.7 -m pytest -q -m 'not slow' tests` to add deterministic channel
+impairment and post-channel window-offset controls. The checks use independent
+reference computations for message recovery and signal properties. See
+[modulator conformance](docs/modulator-conformance.md) for their methods,
 thresholds, and limitations.
 
 ## Historical source references

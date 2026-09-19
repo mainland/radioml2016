@@ -4,6 +4,7 @@ options = configure()
 from generator_options import ANALOG_SOURCE_SAMPLES
 from transmitters import transmitter_amssb_fixed, transmitters
 from source_alphabet import source_alphabet
+from dataset_window import normalized_complex_window
 from gnuradio import channels, gr, blocks
 import numpy as np
 import numpy.fft, cPickle, gzip
@@ -93,10 +94,8 @@ for snr in snr_vals:
               # start the sampler some random time after channel model transients (arbitrary values here)
               sampler_indx = random.randint(50, 500)
               while sampler_indx + vec_length < len(raw_output_vector) and modvec_indx < nvecs_per_key:
-                  sampled_vector = raw_output_vector[sampler_indx:sampler_indx+vec_length]
-                  # Normalize the energy in this vector to be 1
-                  energy = np.sum((np.abs(sampled_vector)))
-                  sampled_vector = sampled_vector / energy
+                  sampled_vector = normalized_complex_window(
+                      raw_output_vector, sampler_indx, vec_length)
                   dataset[(mod_type.modname, snr)][modvec_indx,0,:] = np.real(sampled_vector)
                   dataset[(mod_type.modname, snr)][modvec_indx,1,:] = np.imag(sampled_vector)
                   # bound the upper end very high so it's likely we get multiple passes through
