@@ -148,9 +148,9 @@ tap count, so the structural repair guard does not depend on EBW. GFSK and
 CPFSK likewise use SPS-dependent structural bounds. WBFM retains the measured
 tail-energy criterion because its preemphasis filter is IIR.
 
-The compatibility pickle does not record per-transmission parameters or the
-guard. Preserve the exact command line with that artifact. Any attributed
-export must record the guard and whether the option was enabled so downstream
-analysis can test the repair invariant or quantify historical startup windows.
-The guard is tied to the pinned transmitter implementations and configured
-dynamic channel. It must be remeasured before either is changed.
+The HDF5 schema records `settling_guard_samples` for every transmission whether
+or not the repair is enabled. It also records `settled_windows` in
+`generation_options_json`. Downstream analysis can therefore test the repair
+invariant or quantify historical windows with offsets below their guard. The
+guard is tied to the pinned transmitter implementations and configured dynamic
+channel. It must be remeasured before either is changed.

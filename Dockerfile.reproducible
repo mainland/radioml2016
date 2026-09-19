@@ -18,6 +18,20 @@ RUN test "$(git -C /opt/replay-src/gnuradio rev-parse HEAD)" = 59daaff0d9d04373d
  && sha256sum /opt/replay-control/gnuradio-3.7.10.1-fastnoise.patch > /opt/replay-provenance/deterministic-runtime.sha256 \
  && printf '%s\n' '{"schema":1,"runtime":"radioml2016-canonical-audio-v3","gnuradio_revision":"59daaff0d9d04373d3a6b14ea7b46e080bad7a1e","channel_seeds":{"awgn":"base","sro":"base+1","cfo":"base+2","fading":"base+i; base+i+1"}}' > /opt/replay-provenance/deterministic-runtime.json
 
+# HDF5 output is an explicitly nonhistorical export facility. Pin the Xenial
+# libraries and record them separately from the historical reconstruction.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      python-h5py=2.6.0-1 \
+      libhdf5-10=1.8.16+docs-4ubuntu1.1 \
+      libaec0=0.3.2-1 \
+      libsz2=0.3.2-1 \
+ && dpkg-query -W -f='${Package}\t${Version}\n' \
+      python-h5py libhdf5-10 libaec0 libsz2 \
+      > /opt/replay-provenance/hdf5-packages.tsv \
+ && python2.7 -c 'import h5py; print(h5py.__version__); print(h5py.version.hdf5_version)' \
+      > /opt/replay-provenance/hdf5.txt
+
 # Avoid hash randomization, CPU-specific VOLK kernels and threaded reductions.
 # Byte identity applies to this image, its inputs, and its execution settings.
 ENV PYTHONHASHSEED=0 VOLK_GENERIC=1 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1

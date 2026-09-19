@@ -56,15 +56,26 @@ def configure():
     parser.add_argument('--snr-mode', choices=SNR_MODES, default='historical',
                         help='noise policy: historical, slope-corrected scaled, '
                         'or signal-referenced calibrated (default: historical)')
+    parser.add_argument('--measure-snr', action='store_true',
+                        help='record paired clean-signal and realized-noise '
+                        'measurements in HDF5 output')
     parser.add_argument('--vary-analog-source', action='store_true',
                         help='draw nonoverlapping 10000-sample source segments '
                         'for analog transmissions')
     parser.add_argument('--analog-source-seed',
                         type=lambda value: int(value, 0),
                         help='analog segment permutation seed (default: --seed)')
-    parser.add_argument('--output', default='RML2016.10a_dict.dat')
+    parser.add_argument('--output-format', choices=('pickle', 'hdf5'),
+                        default='pickle',
+                        help='output file format (default: pickle)')
+    parser.add_argument('--output')
     args = parser.parse_args()
     os.environ['GR_SCHEDULER'] = args.scheduler.upper()
+    if args.output is None:
+        if args.output_format == 'hdf5':
+            args.output = 'RML2016.10a.h5'
+        else:
+            args.output = 'RML2016.10a_dict.dat'
     for name in ('python_seed', 'numpy_seed'):
         if getattr(args, name) is None:
             setattr(args, name, args.seed)
@@ -76,6 +87,10 @@ def configure():
     # GNU Radio uses time for zero; the fading path also uses base+i and base+i+1.
     if not 1 <= args.channel_seed <= 2147483644:
         parser.error('--channel-seed must be in 1..2147483644; zero seeds from time')
+    if args.output_format == 'hdf5':
+        args.initial_channel_seed = args.channel_seed
+    elif args.measure_snr:
+        parser.error('--measure-snr requires --output-format hdf5')
     if args.frames_per_key < 1:
         parser.error('--frames-per-key must be positive')
     if any(snr not in range(-20, 20, 2) for snr in args.snrs):

@@ -1,0 +1,133 @@
+{
+  "artifacts": [
+    {
+      "duplicate_example": {
+        "modulation": "WBFM",
+        "offsets": [
+          9509,
+          9509
+        ],
+        "rows": [
+          8327,
+          8939
+        ],
+        "snr": -20,
+        "transmissions": [
+          221,
+          237
+        ]
+      },
+      "duplicate_windows": {
+        "8PSK": 0,
+        "AM-DSB": 213,
+        "AM-SSB": 219,
+        "BPSK": 0,
+        "CPFSK": 0,
+        "GFSK": 0,
+        "PAM4": 0,
+        "QAM16": 0,
+        "QAM64": 0,
+        "QPSK": 0,
+        "WBFM": 186
+      },
+      "file": "RML2016.10a-Reproducible-Baseline.h5",
+      "label_18_measured_snr_median_db": {
+        "8PSK": 40.918019243569276,
+        "AM-DSB": 41.523064450242515,
+        "AM-SSB": -121.28533535986779,
+        "BPSK": 41.15494092833455,
+        "CPFSK": 41.17248655575517,
+        "GFSK": 41.03722628473366,
+        "PAM4": 48.152528088521606,
+        "QAM16": 51.31374923791526,
+        "QAM64": 57.60370882575768,
+        "QPSK": 41.369988382499855,
+        "WBFM": 41.57579983851223
+      },
+      "max_transmission_label_error_db": 178.70372239910614,
+      "sha256": "f5ce285c62b5c099ce0f0bc89057ff17298313f0ceab9260bbd4d40d9bdc7eaa",
+      "transmissions": 5873,
+      "unique_analog_segments": 1,
+      "unique_channel_seeds": [
+        4919
+      ]
+    },
+    {
+      "duplicate_example": null,
+      "duplicate_windows": {
+        "8PSK": 0,
+        "AM-DSB": 0,
+        "AM-SSB": 0,
+        "BPSK": 0,
+        "CPFSK": 0,
+        "GFSK": 0,
+        "PAM4": 0,
+        "QAM16": 0,
+        "QAM64": 0,
+        "QPSK": 0,
+        "WBFM": 0
+      },
+      "file": "RML2016.10a-Reproducible-Calibrated-VariedAudio.h5",
+      "label_18_measured_snr_median_db": {
+        "8PSK": 18.070018781652024,
+        "AM-DSB": 18.163632940670816,
+        "AM-SSB": 18.145627517280538,
+        "BPSK": 18.140718530967057,
+        "CPFSK": 18.172463539196677,
+        "GFSK": 18.140435651989023,
+        "PAM4": 18.046610095676684,
+        "QAM16": 17.992949638701695,
+        "QAM64": 18.08381033829638,
+        "QPSK": 18.096657065737432,
+        "WBFM": 18.180695403631894
+      },
+      "max_transmission_label_error_db": 1.0857994823254558e-06,
+      "sha256": "df92c6ec10d9aab7dca7edb502ed156be893cb3e868b12154e8c4fab5eeffa64",
+      "transmissions": 5937,
+      "unique_analog_segments": 1610,
+      "unique_channel_seeds": [
+        4919
+      ]
+    },
+    {
+      "duplicate_example": null,
+      "duplicate_windows": {
+        "8PSK": 0,
+        "AM-DSB": 0,
+        "AM-SSB": 0,
+        "BPSK": 0,
+        "CPFSK": 0,
+        "GFSK": 0,
+        "PAM4": 0,
+        "QAM16": 0,
+        "QAM64": 0,
+        "QPSK": 0,
+        "WBFM": 0
+      },
+      "file": "RML2016.10a-Reproducible-Calibrated.h5",
+      "label_18_measured_snr_median_db": {
+        "8PSK": 18.070018781652024,
+        "AM-DSB": 18.162546878467957,
+        "AM-SSB": 18.165250105905493,
+        "BPSK": 18.140718530967057,
+        "CPFSK": 18.172463539196677,
+        "GFSK": 18.140435651989023,
+        "PAM4": 18.046610095676684,
+        "QAM16": 17.992949638701695,
+        "QAM64": 18.08381033829638,
+        "QPSK": 18.096657065737432,
+        "WBFM": 18.169846356603234
+      },
+      "max_transmission_label_error_db": 1.1206491814519381e-06,
+      "sha256": "caeb06bdb9791d8f86df52922ae70297d33795d694813b7a98e6ac17445423c5",
+      "transmissions": 5937,
+      "unique_analog_segments": 1,
+      "unique_channel_seeds": [
+        4919
+      ]
+    }
+  ],
+  "image_id": "sha256:d79d833df84c954151a179d804aa1d0422f10c154097ab2c79d107db2ba19dfc",
+  "scope": "Read-only artifact audit. Duplicate counts are excess bit-identical windows within each modulation/SNR key. Original released data was not reanalyzed.",
+  "source_commit": "f7835404ad18a67107134e2bb87249fc6a8dd3c3"
+}

@@ -4,8 +4,8 @@ from __future__ import print_function
 import numpy as np
 
 
-def normalized_complex_window(transmission, offset, length):
-    """Select and normalize one complex window.
+def normalized_complex_window_with_divisor(transmission, offset, length):
+    """Select one complex window and return its L1 normalization divisor.
 
     Args:
         transmission: One-dimensional post-channel complex samples.
@@ -13,7 +13,8 @@ def normalized_complex_window(transmission, offset, length):
         length: Number of consecutive samples to select.
 
     Returns:
-        A complex64 window whose L1 magnitude sum is one.
+        A pair containing a complex64 window whose L1 magnitude sum is one and
+        the float32 divisor applied to the raw window.
 
     Raises:
         ValueError: If the requested interval is invalid or has zero energy.
@@ -24,7 +25,14 @@ def normalized_complex_window(transmission, offset, length):
     if offset < 0 or length < 1 or offset + length > samples.size:
         raise ValueError('window interval is outside the transmission')
     window = samples[offset:offset + length]
-    energy = np.sum(np.abs(window))
-    if not np.isfinite(energy) or energy <= 0:
+    divisor = np.float32(np.sum(np.abs(window)))
+    if not np.isfinite(divisor) or divisor <= 0:
         raise ValueError('window must have finite, nonzero energy')
-    return np.asarray(window / energy, dtype=np.complex64)
+    normalized = np.asarray(window / divisor, dtype=np.complex64)
+    return normalized, divisor
+
+
+def normalized_complex_window(transmission, offset, length):
+    """Select one complex window and normalize its L1 magnitude sum to one."""
+    return normalized_complex_window_with_divisor(
+        transmission, offset, length)[0]

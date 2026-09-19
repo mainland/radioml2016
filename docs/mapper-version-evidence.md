@@ -44,9 +44,9 @@ images:
 The three reproducible images use the same source tree, source material, Python
 and NumPy seeds, advancing channel seeds, STS scheduler, and deterministic
 channel runtime. The runner explicitly selects `--channel-seed-policy advance`
-to reproduce the recorded comparison. The default generator instead uses
-`restart`. The mapper revision is the intended difference among these three
-candidates. Each image generates
+to reproduce the recorded comparison. The named Baseline profile instead
+uses `restart`. The mapper revision is the intended difference among these
+three candidates. Each image generates
 1,000 windows for all 20 SNR labels and all eleven modulations. Generating the
 complete modulation list preserves the generator loop's seed advancement and
 sampler draws. The comparison then selects the six mapper-based modulations.

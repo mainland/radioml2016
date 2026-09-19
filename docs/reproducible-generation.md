@@ -6,6 +6,55 @@ source an explicit seed, and applies a GNU Radio patch that removes shared
 channel RNG state. The output is a new dataset. The distributed dataset's
 random states and execution schedule remain unknown.
 
+## Baseline construction
+
+The unit of generation is a finite transmission. The unit of classification is
+one 128-sample window from that transmission. Several windows can share a
+source, whitening mask, and channel realization.
+
+```mermaid
+flowchart LR
+    A[Text bits or canonical audio] --> B[Modulator]
+    B --> C[Dynamic channel and noise]
+    C --> D[Select 128-sample windows]
+    D --> E[Divide each window by sum of magnitudes]
+    E --> F[Pickle or attributed HDF5]
+```
+
+With every intervention left at its default,
+[`generate_RML2016.10a.py`](../generate_RML2016.10a.py) performs these steps:
+
+1. Visit SNR labels in ascending order, then the fixed transmitter order:
+   BPSK, QPSK, 8PSK, PAM4, QAM16, QAM64, GFSK, CPFSK, WBFM, AM-DSB, AM-SSB.
+2. Start a fresh source and modulator for each transmission. Digital sources
+   restart the pinned Shakespeare text, unpack bits least-significant first,
+   and XOR them with a new NumPy-drawn, repeating 256-bit mask. Analog sources
+   restart the canonical audio at item zero. Source lengths are 10,000 items,
+   except 20,000 bits for QAM16 and 30,000 bits for QAM64.
+3. Use SPS 8 and RRC roll-off or GFSK BT 0.35 where those parameters apply.
+   Pass the waveform through the pinned dynamic channel, including clock drift,
+   carrier drift, fading, and additive noise. The channel is parameterized at 200 ksample/s.
+   Historical WBFM emits at 220.5 ksample/s, retaining the known mismatch.
+   Noise amplitude is `10**(-label/10)`, so labels are not physical SNR.
+4. Draw the first post-channel offset uniformly from integers 50 through 500.
+   Export a window only while `offset + 128 < transmission_length`. After each
+   accepted window, advance by an integer drawn uniformly from 128 through
+   `round(0.05 * transmission_length)`, including the draw after the last
+   required window. Start another transmission until the key has its requested
+   number of windows.
+5. Divide each complex window by its L1 magnitude sum, then store its real and
+   imaginary parts in `float32[2, 128]`. This is neither unit-energy nor
+   unit-RMS normalization. HDF5 additionally retains the divisor and ancestry.
+
+[`source_alphabet.py`](../source_alphabet.py),
+[`transmitters.py`](../transmitters.py),
+[`dataset_channel.py`](../dataset_channel.py), and
+[`dataset_window.py`](../dataset_window.py) implement these stages. The
+[seed policy](#seeds) specifies how state advances between transmissions.
+Interventions below change one or more stages and must be recorded with the
+experiment. Matching seeds alone does not make two different generation
+configurations share every latent draw.
+
 ## Build and run
 
 From a recursive checkout with Docker and Linux amd64 support:
@@ -57,6 +106,74 @@ pickle bytes across fresh STS processes. Use `--scheduler tpb` only to
 investigate the historical thread-per-block scheduler (`TPB`). TPB is not part
 of the reproducibility guarantee for parameter or seed variations.
 
+## Preserve a review artifact
+
+The [named dataset definitions](datasets.md) specify Baseline, Calibrated, and
+Calibrated-VariedAudio, their complete-file hashes, and a regression that
+regenerates all four artifacts. The recipe below illustrates provenance
+preservation for the Baseline pair. Use the same procedure for the other
+profiles.
+
+Use a committed, clean source tree for an artifact submitted for review. Keep
+new results under `output/`, separate from the reports retained in `evidence/`.
+The following baseline recipe records the commands and produces both the
+compatibility pickle and its attributed HDF5 counterpart:
+
+```sh
+mkdir -p output/baseline
+cat > output/baseline/generate.sh <<'EOF'
+#!/bin/sh
+set -eu
+./build_dataset --python-seed 201610 --numpy-seed 201610 \
+  --channel-seed 0x1337 --scheduler sts --frames-per-key 1000 \
+  --output output/baseline/RML2016.10a.dat
+./build_dataset --python-seed 201610 --numpy-seed 201610 \
+  --channel-seed 0x1337 --scheduler sts --frames-per-key 1000 \
+  --output-format hdf5 --measure-snr --output output/baseline/RML2016.10a.h5
+EOF
+sh output/baseline/generate.sh > output/baseline/generation.log 2>&1
+```
+
+Require exact I/Q and label equality between the two artifacts:
+
+```sh
+docker run --rm --network none --user "$(id -u):$(id -g)" \
+  -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 \
+  -v "$PWD:/work:ro" -w /work radioml2016:reproducible \
+  python2.7 scripts/compare_pickle_hdf5.py \
+    output/baseline/RML2016.10a.dat output/baseline/RML2016.10a.h5
+```
+
+The comparator loads a trusted pickle, reads HDF5 one key at a time, and fails
+on an unsupported schema or a shape, dtype, label, or sample mismatch. Retain
+the source identities, source archives, image configuration, and package/build
+provenance alongside the data:
+
+```sh
+git rev-parse HEAD > output/baseline/source-commit.txt
+git submodule status > output/baseline/submodules.txt
+git archive --format=tar HEAD > output/baseline/source.tar
+git -C source_material archive --format=tar HEAD \
+  > output/baseline/source-material.tar
+docker image inspect radioml2016:historical radioml2016:reproducible \
+  > output/baseline/images.json
+docker run --rm --network none --user 0:0 radioml2016:reproducible \
+  tar -C /opt -cf - replay-provenance > output/baseline/runtime-provenance.tar
+(cd output/baseline && sha256sum RML2016.10a.dat RML2016.10a.h5 \
+  generate.sh generation.log source-commit.txt submodules.txt source.tar \
+  source-material.tar images.json runtime-provenance.tar > SHA256SUMS)
+```
+
+The provenance export uses the container root account to read image-owned
+build files. It writes the archive through the caller's shell.
+
+`git archive` records committed files. It does not capture uncommitted edits.
+Image configuration identifies an image but does not preserve its layers.
+Retain the built images with `docker image save`, or in a registry by digest.
+The Dockerfiles pin source commits and direct package versions, but transitive
+packages still come from the live Ubuntu archive. Keep the validation reports
+described [below](#validation-and-limits) with each reviewed experiment.
+
 ## Generator variants
 
 ### Canonical analog source
@@ -106,19 +223,19 @@ nonoverlapping 10,000-item segments instead:
 
 ```sh
 ./build_dataset --vary-analog-source --analog-source-seed 201610 \
-  --output varied-analog.dat
+  --output-format hdf5 --output varied-analog.h5
 ```
 
 The source-selection RNG is independent of Python's global RNG and defaults to
 `--seed`. Changing it therefore changes analog source content without changing
-window-offset or channel draws. Segment offsets are multiples of 10,000 and no
-segment is selected twice in one run. The generator reports an error if it
-exhausts the source rather than silently reusing a segment.
+SPS, EBW, window-offset, or channel draws. Segment offsets are multiples of
+10,000 and no segment is selected twice in one run. The generator reports an
+error if it exhausts the source rather than silently reusing a segment.
 
 When the option is absent, every analog source offset remains zero and no
 source-selection random values are consumed. This preserves the compatibility
-pickle bytes. The pickle has no attribute channel, so retain the command and
-seed with the artifact.
+pickle bytes. Use HDF5 to retain source coordinates because the pickle stores
+only waveform arrays and labels.
 
 ### AM-SSB implementation
 
@@ -170,8 +287,8 @@ this option. The options can be used independently or together:
 Both draws use the Python RNG controlled by `--python-seed`. When an option is
 omitted, its parameter keeps the default (SPS 8 or roll-off/BT 0.35) without
 additional random values, preserving the default generator's byte output. The
-pickle format does not store SPS or EBW metadata, so record the ranges and
-seeds with the generated artifact.
+pickle format does not store SPS or EBW metadata. Use the attributed HDF5
+output when per-transmission values are required.
 
 ### WBFM rate repair
 
@@ -234,9 +351,123 @@ models. The historical AM-SSB guard remains 50 because its zero-frequency sine
 suppresses the signal before the Hilbert FIR. Its repaired path uses the FIR's
 measured finite response boundary.
 
+## Attributed HDF5 output
+
+Pass `--output-format hdf5` to write numeric arrays with window and transmission
+provenance. The pickle compatibility format remains the default. When
+`--output` is omitted, the HDF5 path defaults to `RML2016.10a.h5`:
+
+```sh
+./build_dataset --output-format hdf5 --output RML2016.10a.h5 \
+  --sps 2 12 --ebw 0.1 0.5 --fixed-am-ssb --fixed-wbfm \
+  --settled-windows
+```
+
+The file uses schema `radioml2016-attributed` version 1. The `windows` group
+contains these item-aligned datasets:
+
+| Dataset | Dtype and shape | Meaning |
+| --- | --- | --- |
+| `iq` | `float32[N, 2, 128]` | Normalized I/Q windows with axes `(item, iq, time)` |
+| `modulation_id` | `int16[N]` | Index into the root `modulation_names_json` attribute |
+| `snr_db` | `int16[N]` | Generator SNR label in dB |
+| `transmission_number` | `uint64[N]` | Row in the `transmissions` group |
+| `offset` | `uint64[N]` | First window sample in the post-channel transmission |
+| `normalization_l1` | `float32[N]` | `sum(abs(raw_window))` divisor applied before storing I/Q |
+| `snr_measurement_valid` | `uint8[N]` | One when paired power and SNR values are present |
+| `signal_power` | `float64[N]` | Mean clean post-impairment sample power before normalization |
+| `noise_power` | `float64[N]` | Mean paired noisy-minus-clean sample power before normalization |
+| `measured_snr_db` | `float64[N]` | `10*log10(signal_power/noise_power)` |
+
+The `transmissions` group contains one row for every attempted modulator and
+channel execution, including an attempt that contributes no windows. A
+transmission number is a zero-based row index and is unique only within one
+HDF5 artifact. Window offsets are zero-based indexes into the corresponding
+post-channel transmission.
+
+| Dataset | Dtype and shape | Meaning |
+| --- | --- | --- |
+| `modulation_id` | `int16[T]` | Modulation class for the transmission |
+| `snr_db` | `int16[T]` | Generator SNR label in dB |
+| `sps` | `uint32[T]` | Actual samples per symbol, or zero when inapplicable |
+| `ebw` | `float64[T]` | RRC roll-off for linear modulations, Gaussian-filter BT for GFSK, or NaN when inapplicable |
+| `modulator_sample_rate_hz` | `uint32[T]` | Native modulator output rate before an optional repair |
+| `channel_input_sample_rate_hz` | `uint32[T]` | Rate of the stream connected to the channel |
+| `channel_model_sample_rate_hz` | `uint32[T]` | Rate used to parameterize the channel model |
+| `channel_seed` | `uint32[T]` | Actual channel base seed for this transmission |
+| `noise_amplitude` | `float64[T]` | Requested RMS amplitude of the complex Gaussian noise source |
+| `snr_measurement_valid` | `uint8[T]` | One when aggregate paired measurements are present |
+| `signal_power` | `float64[T]` | Aggregate clean power over this row's exported windows |
+| `noise_power` | `float64[T]` | Aggregate paired residual power over this row's exported windows |
+| `measured_snr_db` | `float64[T]` | Aggregate measured SNR before normalization |
+| `snr_measurement_window_count` | `uint32[T]` | Number of exported windows used in the aggregate |
+| `sample_count` | `uint64[T]` | Post-channel transmission length in samples |
+| `analog_source_valid` | `uint8[T]` | One when the row uses the canonical analog source |
+| `analog_source_offset` | `uint64[T]` | First pre-modulator canonical source item |
+| `analog_source_length` | `uint32[T]` | Number of canonical source items consumed |
+| `random_mask` | `uint8[T, 256]` | Repeated discrete-source whitening mask |
+| `random_mask_valid` | `uint8[T]` | One when `random_mask` applies |
+| `am_ssb_fixed` | `uint8[T]` | One for the local fixed AM-SSB implementation |
+| `wbfm_fixed` | `uint8[T]` | One when WBFM is resampled to 200 ksample/s |
+| `settling_guard_samples` | `uint32[T]` | First-offset lower bound recommended by the startup policy |
+
+All windows with the same `transmission_number` share one source, modulator,
+parameter set, and channel execution. Keep such windows in the same data split.
+With `restart`, different transmissions also reuse channel evolution and noise
+sequences before amplitude scaling. They can share source content as well.
+Baseline has exact duplicate windows under different transmission IDs, so
+transmission grouping alone does not prevent leakage. See the
+[dependence audit](datasets.md#dependence-and-evaluation-splits) for the measured
+counts and requirements for a held-out channel study. The exact mask permits
+reconstruction of the whitened discrete input. Analog transmissions have a
+zero mask and `random_mask_valid=0`.
+
+The root `analog_source_json` attribute identifies the canonical source by
+dtype, item count, SHA-256, and coordinate definition. For digital rows,
+`analog_source_valid=0` and the offset and length are zero. Without
+`--vary-analog-source`, all analog rows have offset zero and length 10,000.
+With it, valid offsets are distinct multiples of 10,000. The root
+`generation_options_json` records the option and `analog_source_seed`.
+
+The root `generation_options_json` attribute records `snr_mode` and whether
+`measure_snr` and `settled_windows` were enabled. When `settled_windows` is
+true, every window offset is at least the referenced transmission's
+`settling_guard_samples`. When it is false, the guard still records the
+analyzed boundary so downstream code can identify historical startup windows
+with `offset < settling_guard_samples`.
+
+`normalization_l1` is always present. Multiplying stored complex I/Q by this
+value reconstructs the raw post-channel window up to float32 arithmetic.
+Measurement arrays contain NaN and their validity flag is zero when no paired
+run was performed. Calibrated mode always performs paired runs, even without
+`--measure-snr`. A transmission with an invalid measurement has a zero
+measurement-window count.
+
+The original WBFM path records native and channel-input rates of 220,500
+samples/s and a channel-model rate of 200,000 samples/s. With `--fixed-wbfm`,
+the native rate remains 220,500 samples/s and the channel-input rate becomes
+200,000 samples/s. Other transmitters record 200,000 samples/s for all three
+rates.
+
+Run `scripts/compare_pickle_hdf5.py PICKLE HDF5` in the reproducible image to
+require exact I/Q equality and aligned modulation and SNR labels. The comparator
+loads the pickle, which must come from a trusted source, but reads HDF5 I/Q one
+`(modulation, SNR)` batch at a time. It rejects unsupported schema versions and
+exits nonzero on any shape, dtype, label, or sample mismatch.
+
+The image pins `h5py` 2.6.0, HDF5 1.8.16, and pytest 2.8.7. Their package and
+runtime versions are recorded under `/opt/replay-provenance`. The
+reproducibility check compares complete HDF5 file hashes across fresh generator
+processes and validates the alignment and applicability of every attribute. It
+also writes `reproducibility-matrix.json`, including generation arguments,
+whole-file hashes, runtime provenance, and per-array HDF5 fingerprints for a
+downstream import check. These fixtures use STS. The HDF5 schema records the
+selected scheduler and does not prohibit TPB, whose parameter and seed
+variations remain outside the reproducibility guarantee.
+
 ## SNR-label semantics
 
-The generator provides three explicit interpretations of the SNR key:
+The generator provides three explicit interpretations of `snr_db`:
 
 | `--snr-mode` | Noise amplitude | Meaning |
 | --- | --- | --- |
@@ -265,6 +496,21 @@ waveform, including an AM carrier. It does not isolate the information-bearing
 sideband, so a carrier-to-sideband or demodulated quality metric remains a
 separate measurement.
 
+Pass `--measure-snr` with `--output-format hdf5` to record the paired powers
+and their ratio without changing the selected noise policy. For historical and
+scaled modes, the generator first completes the normal noisy flowgraph, then
+reconstructs its finite channel input from the recorded whitening mask or
+canonical analog-source coordinates and runs a zero-noise channel with the
+same seed. The HDF5 I/Q remains exactly equal to an otherwise identical pickle
+run. Calibrated mode already has the zero-noise run and always records its
+measurements. Per-window values describe one 128-sample interval. Transmission
+values aggregate all exported windows from that channel execution.
+
+The stored powers precede per-window L1 normalization. The normalization would
+scale signal and noise equally and therefore cancel in their ratio, but the
+recorded divisor permits amplitude-sensitive analysis and reconstruction of
+the unnormalized window.
+
 `tests/check_channel_controls.py` isolates AWGN, carrier drift, sample-rate
 drift, and fading, then exercises their supported combination. For its
 deterministic BPSK control, labels -20, 0, and 18 measure approximately -34.65,
@@ -273,7 +519,7 @@ control, not universal corrections for the dataset labels.
 
 The same control demodulates 512 BPSK symbols without error in the baseline,
 each isolated impairment, and the combined channel at label 18. It also selects
-four normalized windows from a real post-channel transmission by their
+four normalized windows from a real post-channel transmission by their recorded
 zero-based offsets and requires exact sample equality.
 
 ## Seeds
@@ -310,6 +556,12 @@ carrier-frequency drift uses `base+2`, and fading path `i` uses angle seed
 one transmission reuse its base seed. Advancing applies once per transmission,
 not once per measurement run.
 
+HDF5 records `channel_seed_policy` and `initial_channel_seed` in
+`generation_options_json`, together with each transmission's actual
+`channel_seed`. Earlier schema-version-1 files omit `channel_seed_policy`
+and used `advance`. Interpret a missing field in those files as `advance`,
+not as the command-line default.
+
 ## Deterministic evaluation
 
 The [GNU Radio patch](../patches/gnuradio-3.7.10.1-fastnoise.patch) gives each
@@ -335,21 +587,63 @@ settings, the verified source size, Python 2.7, and the patched runtime marker.
 
 ## Validation and limits
 
-Run [tests/check_reproducibility.py](../tests/check_reproducibility.py) using
-the container command in the [README](../README.md#check-reproducibility). It
-compares three fresh processes across all 11 modulations at SNRs -20 and 18
-with 80 windows per key, exercising multiple transmissions, and checks
-independent Python, NumPy, and channel seed changes. It checks that the
-default restarts the channel seed and that explicit advancement repeats its
-separate fixture. It also checks AM-SSB
-message transfer, repeats generations using all three repair options, and
-verifies that SPS and EBW variation are independently effective and jointly
-byte-reproducible.
+Run all validation checks against a read-only checkout:
+
+```sh
+docker run --rm --network none --user "$(id -u):$(id -g)" \
+  -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 \
+  -v "$PWD:/work:ro" -w /work \
+  radioml2016:reproducible \
+  python2.7 -m pytest -q tests
+```
+
+The suite has eight modules:
+
+| Test | Contract |
+| --- | --- |
+| `check_modulators.py` | Clean message recovery and modulation properties |
+| `check_channel_controls.py` | Channel impairments, SNR labels, and window offsets |
+| `check_datasets.py` | Full named-dataset hashes and exact Baseline pickle/HDF5 equality |
+| `check_dataset_quality.py` | Exact duplicate counts, key separation, and duplicate ancestry |
+| `check_filter_delay.py` | Startup measurements and sampling guards |
+| `check_mapper_snr.py` | Calibrated SNR estimation, model selection, and report provenance |
+| `check_reproducibility.py` | Fresh-process byte identity, seed controls, variants, and metadata |
+| `check_snr_policy.py` | Historical scaling, corrected scaling, and paired calibration |
+
+The slow [reproducibility test](../tests/check_reproducibility.py) compares
+three fresh default STS processes across all 11 modulations at SNRs -20 and 18
+with 80 windows per key, exercising multiple transmissions. It compares the
+default with explicit STS and restart settings, checks advancing seeds and
+wraparound, and exercises the historical TPB fixture. It repeats runs with
+independent Python, NumPy, and channel seed changes and rejects unsupported
+parameters and runtime settings. It also checks AM-SSB message transfer,
+repeats generations using all three repair options and all three SNR policies,
+and verifies that SPS and EBW variation are independently effective and jointly
+byte-reproducible. It also requires every settled-window offset to meet its
+recorded guard. Run only this test with
+`python2.7 -m pytest -q tests/check_reproducibility.py`. The matrix also varies
+the analog source, requires different source seeds to change its output,
+checks that selected segments do not overlap, compares measured HDF5 I/Q
+exactly with its pickle counterpart, and repeats the attributed HDF5 bytes.
+
+Pytest creates the matrix artifacts under its temporary directory. The
+container removes that directory after the test. Retain the generated pickle
+and HDF5 files, subprocess logs, hashes, and `reproducibility-matrix.json` with
+the direct reporting interface:
+
+```sh
+mkdir -p output/reproducibility
+docker run --rm --network none --user "$(id -u):$(id -g)" \
+  -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 \
+  -v "$PWD:/work:ro" -v "$PWD/output/reproducibility:/out" -w /work \
+  radioml2016:reproducible \
+  python2.7 tests/check_reproducibility.py --output /out
+```
 
 Run the separate [modulator conformance check](modulator-conformance.md) to
 demodulate clean outputs from all eleven transmitters. That check tests message
-recovery and modulation-specific signal properties; it does not test byte
-identity or performance under channel impairments.
+recovery and modulation-specific signal properties. Byte identity and
+performance under channel impairments require separate checks.
 
 `tests/check_channel_controls.py` complements the clean-modulator check with
 isolated and combined deterministic impairments, SNR-label measurements, and
@@ -357,7 +651,8 @@ exact post-channel offset reconstruction. The separate [filter delay
 analysis](filter-delay-analysis.md) measures cold-start responses for all
 transmitters and local delay for each channel control. It establishes that the
 historical 50--500 first-window offset does not reliably skip transmitter
-startup. Run the focused checks with
+startup. These focused tests run by default. Exclude the slow matrix and full
+dataset regeneration with
 `python2.7 -m pytest -q -m 'not slow' tests`.
 
 Byte identity applies to the tested Linux amd64 image, source inputs, and

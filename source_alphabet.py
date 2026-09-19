@@ -6,7 +6,10 @@ import os
 
 class source_alphabet(gr.hier_block2):
     def __init__(self, dtype="discrete", limit=10000, randomize=False,
-                 source_offset=0):
+                 capture_random_mask=False, source_offset=0,
+                 random_mask=None):
+        if capture_random_mask or random_mask is not None:
+            self.random_mask = None
         if(dtype == "discrete"):
             gr.hier_block2.__init__(self, "source_alphabet",
                 gr.io_signature(0,0,0),
@@ -22,8 +25,23 @@ class source_alphabet(gr.hier_block2):
             # whiten our sequence with a random block scrambler (optionally)
             if(randomize):
                 rand_len = 256
-                rand_bits = np.random.randint(2, size=rand_len)
-                self.randsrc = blocks.vector_source_b(rand_bits, True)
+                if random_mask is None:
+                    rand_bits = np.random.randint(2, size=rand_len)
+                else:
+                    rand_bits = np.asarray(random_mask, dtype=np.uint8)
+                    if (rand_bits.shape != (rand_len,) or not
+                            np.logical_or(
+                                rand_bits == 0, rand_bits == 1).all()):
+                        raise ValueError(
+                            "random mask must contain 256 binary values")
+                if capture_random_mask or random_mask is not None:
+                    # Preserve the exact whitening sequence as transmission
+                    # provenance without changing the GNU Radio input array.
+                    self.random_mask = np.asarray(
+                        rand_bits, dtype=np.uint8).copy()
+                source_bits = (rand_bits.tolist()
+                               if random_mask is not None else rand_bits)
+                self.randsrc = blocks.vector_source_b(source_bits, True)
                 self.xor = blocks.xor_bb()
                 self.connect(self.randsrc,(self.xor,1))
                 self.connect(last, self.xor)

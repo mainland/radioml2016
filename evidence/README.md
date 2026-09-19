@@ -9,6 +9,7 @@ golden fixture used by the reproducibility test.
 
 | Reports | Recorded observation | Reproduce and interpret |
 | --- | --- | --- |
+| [Dataset quality](dataset-quality.json) | Baseline has 618 excess exact duplicate windows within modulation/SNR keys. All three named profiles reuse one channel base seed. | [Artifact audit and split limits](../docs/datasets.md#dependence-and-evaluation-splits) |
 | [Baseline mapper control](baseline.json) | January and October mappers produce distinct fixture hashes. Removing unused imports leaves the January output unchanged. | [Baseline generation](../docs/reproducible-generation.md#build-and-run) |
 | [Noise pools](noise/pool-comparison.json) | The Boost MT pool seeded with 4919 fits all 1,000 AM-SSB/-20 windows. Alternative pools fail the same criterion. | [Noise procedure](../docs/noise-evidence.md) |
 | [AM-SSB/+18 control](noise/pool-comparison-amssb-18.json) | Tests the noise model where residual message leakage is more visible. | [Noise procedure](../docs/noise-evidence.md#am-ssb-at-18-db) |
@@ -23,6 +24,14 @@ Verify the preserved report bytes from this directory:
 ```sh
 sha256sum -c SHA256SUMS
 ```
+
+The dataset-quality report is the unchanged September 26, 2026 artifact audit.
+It identifies the three reference HDF5 files by SHA-256 and records the reviewed
+source snapshot and image. It counts excess bit-identical windows within each
+modulation/SNR key, records one duplicate group's ancestry, and summarizes
+stored paired SNR measurements. It does not measure near-duplicates or
+statistical independence, and it does not analyze the original dataset.
+The maintained audit command reproduces its `artifacts` entries.
 
 The original input is supplied separately. The investigated pickle has SHA-256
 `b29ccc25b00d0718cd3b70ffa9158662ec83f6d9b63ffd845c7bcbe3b3096e8c`.
@@ -55,7 +64,7 @@ To compare the fixture hashes, use the January and October builds described
 in the mapper procedure and generate with `--frames-per-key 80 --snrs -20 18
 --channel-seed-policy advance`, leaving other options at defaults. Both this
 control and the full mapper comparison used advancing seeds. Their recorded
-hashes and SNR offset do not describe the restarting default generator. The
+hashes and SNR offset do not describe the restarting Baseline profile. The
 separate seed-policy report records the restarting control. The earlier
 report's source and image identities refer to the measured snapshots. The pre-cleanup source snapshot and measured
 image layers are not included in a clone.
