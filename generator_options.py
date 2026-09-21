@@ -48,6 +48,9 @@ def configure():
     parser.add_argument('--fixed-wbfm', action='store_true',
                         help='resample WBFM to the 200 ksample/s channel rate '
                         '(the original 220.5 ksample/s path remains the default)')
+    parser.add_argument('--settled-windows', action='store_true',
+                        help='select first windows after the measured '
+                        'transmitter and channel startup response')
     parser.add_argument('--vary-analog-source', action='store_true',
                         help='draw nonoverlapping 10000-sample source segments '
                         'for analog transmissions')

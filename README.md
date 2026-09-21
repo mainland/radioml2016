@@ -82,12 +82,12 @@ The representative 80-window, two-label compatibility fixture has SHA-256
 The test suite treats this as a golden value, not merely as equality between
 two fresh runs.
 
-Do not pass `--fixed-am-ssb`, `--fixed-wbfm`, `--vary-analog-source`, `--sps`,
-or `--ebw` for this profile. The first three options repair known historical
-behavior or repeated source content. The range options change transmitter
-parameters and consume additional Python RNG draws, even when both endpoints
-are equal. Those variants are reproducible, but they are not the closest
-mirror of the distributed dataset's generator.
+Do not pass `--fixed-am-ssb`, `--fixed-wbfm`, `--settled-windows`,
+`--vary-analog-source`, `--sps`, or `--ebw` for this profile. The first four
+options repair known historical behavior or repeated source content. The range
+options change transmitter parameters and consume additional Python RNG draws,
+even when both endpoints are equal. Those variants are reproducible, but they
+are not the closest mirror of the distributed dataset's generator.
 
 For a smaller run:
 
@@ -185,6 +185,26 @@ Both draws use `--python-seed`. Omitting an option consumes no additional
 random draw and retains its generator default: SPS 8 and roll-off or BT 0.35.
 CPFSK ignores `--ebw`.
 
+### Skip transmitter startup
+
+The historical generator draws its first post-channel window offset uniformly
+from the inclusive range 50--500. That range begins before the startup response
+ends for the six RRC transmitters, WBFM, and repaired AM-SSB. Add
+`--settled-windows` to shift the same 451-value uniform draw so its lower bound
+is at or beyond a modulation-specific startup guard:
+
+```sh
+./build_dataset --settled-windows --sps 2 12 --ebw 0.1 0.5 \
+  --output settled.dat
+```
+
+The guard uses the actual SPS and repair flags. EBW changes the distribution of
+RRC response energy but not the filter's finite support, so it does not change
+the conservative RRC guard. Omitting `--settled-windows` preserves the original
+50--500 draw and default bytes. See [filter delay
+analysis](docs/filter-delay-analysis.md) for the measurements, formulas, and
+limits.
+
 See [reproducible generation](docs/reproducible-generation.md) for seed routing,
 runtime changes, and the scope of reproducibility.
 
@@ -215,11 +235,13 @@ docker run --rm --network none --user "$(id -u):$(id -g)" \
   python2.7 -m pytest -q tests/check_modulators.py
 ```
 
-Run `python2.7 -m pytest -q -m 'not slow' tests` to add deterministic channel
-impairment and post-channel window-offset controls. The checks use independent
-reference computations for message recovery and signal properties. See
-[modulator conformance](docs/modulator-conformance.md) for their methods,
-thresholds, and limitations.
+Run `python2.7 -m pytest -q -m 'not slow' tests` to add deterministic channel,
+filter-delay, and mapper-evidence checks. The checks use independent reference
+computations for message recovery and signal properties. See [modulator
+conformance](docs/modulator-conformance.md) for receiver methods and [filter
+delay analysis](docs/filter-delay-analysis.md) for startup-window measurements.
+The modulator, channel-control, and filter-delay scripts also provide direct
+`--output` interfaces for JSON measurement reports.
 
 ## Historical source references
 

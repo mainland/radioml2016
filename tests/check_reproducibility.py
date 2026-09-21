@@ -137,7 +137,7 @@ def check_baseline_defaults():
         'modulations': ['BPSK', 'QPSK', '8PSK', 'PAM4', 'QAM16', 'QAM64',
                         'GFSK', 'CPFSK', 'WBFM', 'AM-DSB', 'AM-SSB'],
         'sps': None, 'ebw': None, 'fixed_am_ssb': False, 'fixed_wbfm': False,
-        'vary_analog_source': False,
+        'settled_windows': False, 'vary_analog_source': False,
         'output': 'RML2016.10a_dict.dat',
     }
     assert options == expected
@@ -243,6 +243,10 @@ def main():
     varied = run('vary-sps-ebw-0', varied_args, expected_keys=3)
     assert len({digital, varied_sps, varied_ebw, varied}) == 4
     assert run('vary-sps-ebw-1', varied_args, expected_keys=3) == varied
+    settled_args = varied_args + ['--settled-windows']
+    settled = run('settled-windows-0', settled_args, expected_keys=3)
+    assert settled != varied
+    assert run('settled-windows-1', settled_args, expected_keys=3) == settled
     for name, extra in (
             ('zero-channel', ['--channel-seed', '0']),
             ('unknown-channel-policy', ['--channel-seed-policy', 'random']),

@@ -6,6 +6,7 @@ from transmitters import (transmitter_amssb_fixed, transmitters,
                           wbfm_rate_resampler)
 from source_alphabet import source_alphabet
 from dataset_window import normalized_complex_window
+from window_policy import first_window_offset_bounds
 from gnuradio import channels, gr, blocks
 import numpy as np
 import numpy.fft, cPickle, gzip
@@ -67,6 +68,8 @@ for snr in snr_vals:
               if (options.ebw is not None and alphabet_type == "discrete" and
                       mod_type.modname != "CPFSK"):
                   mod_kwargs["excess_bw"] = random.uniform(*options.ebw)
+              actual_sps = (mod_kwargs.get("samples_per_symbol", 8)
+                            if alphabet_type == "discrete" else 0)
               if options.fixed_am_ssb and mod_type.modname == "AM-SSB":
                   mod = transmitter_amssb_fixed()
               else:
@@ -106,8 +109,16 @@ for snr in snr_vals:
               tb.run()
 
               raw_output_vector = np.array(snk.data(), dtype=np.complex64)
-              # start the sampler some random time after channel model transients (arbitrary values here)
-              sampler_indx = random.randint(50, 500)
+              first_offset_min, first_offset_max = first_window_offset_bounds(
+                  mod_type.modname, actual_sps, options.settled_windows,
+                  options.fixed_am_ssb, options.fixed_wbfm)
+              if first_offset_min + vec_length >= len(raw_output_vector):
+                  raise ValueError(
+                      'first-window guard %d leaves no complete window in %s '
+                      'transmission of %d samples' %
+                      (first_offset_min, mod_type.modname,
+                       len(raw_output_vector)))
+              sampler_indx = random.randint(first_offset_min, first_offset_max)
               while sampler_indx + vec_length < len(raw_output_vector) and modvec_indx < nvecs_per_key:
                   sampled_vector = normalized_complex_window(
                       raw_output_vector, sampler_indx, vec_length)

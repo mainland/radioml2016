@@ -185,6 +185,55 @@ interface. It leaves the canonical source's twice-speed interpretation and
 unfiltered sample selection unchanged, as described under
 [canonical analog source](#canonical-analog-source).
 
+### Settled-window sampling
+
+The historical generator draws the first post-channel window offset uniformly
+from the inclusive range 50--500. The [filter delay
+analysis](filter-delay-analysis.md) establishes that this range begins before
+the startup response ends for the six mapper/RRC transmitters, WBFM, and
+repaired AM-SSB. Pass `--settled-windows` to shift the lower bound to a
+modulation-specific guard:
+
+```sh
+./build_dataset --settled-windows --sps 2 12 --ebw 0.1 0.5 \
+  --fixed-am-ssb --fixed-wbfm --output settled.dat
+```
+
+The repair retains a 451-value inclusive uniform distribution. It therefore
+consumes the same single Python RNG draw as the historical sampler. Omitting
+the option retains the exact 50--500 bounds and does not change the default
+random sequence.
+
+For the six RRC paths, the PFB contains `32*11*SPS` taps. Direct response
+probes establish that `11*SPS**2+1` is a conservative first sample beyond its
+finite output response. The repair adds the combined channel's measured
+five-sample operational response-end displacement, giving
+`11*SPS**2+6`. This is 710 samples at the default SPS 8. The RRC and GFSK
+structural-support bounds depend on SPS but not EBW. WBFM contains an IIR
+preemphasis stage, so its guard uses the documented `1e-7` tail-energy
+criterion rather than claiming exact finite support.
+
+The repair uses these post-channel lower bounds:
+
+| Transmitter | Settled-window lower bound |
+| --- | ---: |
+| BPSK, QPSK, 8PSK, PAM4, QAM16, QAM64 | `max(50, 11*SPS**2+6)` |
+| GFSK | `max(50, 5*SPS+5)` |
+| CPFSK | `max(50, SPS+6)` |
+| Historical WBFM | 318 |
+| Rate-repaired WBFM | 260 |
+| AM-DSB | 50 |
+| Historical AM-SSB | 50 |
+| Repaired AM-SSB | 409 |
+
+The five-sample channel term is the maximum operational response-end
+displacement measured across the configured baseline, AWGN-equivalent, CFO,
+SRO, fading, and combined controls at five input ages. It is an empirical bound
+for this pinned channel policy, not a general bound for other GNU Radio channel
+models. The historical AM-SSB guard remains 50 because its zero-frequency sine
+suppresses the signal before the Hilbert FIR. Its repaired path uses the FIR's
+measured finite response boundary.
+
 ## SNR-label semantics
 
 The SNR key preserves the historical generator label, but it is not a
@@ -269,8 +318,8 @@ with 80 windows per key, exercising multiple transmissions, and checks
 independent Python, NumPy, and channel seed changes. It checks that the
 default restarts the channel seed and that explicit advancement repeats its
 separate fixture. It also checks AM-SSB
-message transfer, repeats generations using both repair options, and verifies
-that SPS and EBW variation are independently effective and jointly
+message transfer, repeats generations using all three repair options, and
+verifies that SPS and EBW variation are independently effective and jointly
 byte-reproducible.
 
 Run the separate [modulator conformance check](modulator-conformance.md) to
@@ -280,7 +329,11 @@ identity or performance under channel impairments.
 
 `tests/check_channel_controls.py` complements the clean-modulator check with
 isolated and combined deterministic impairments, SNR-label measurements, and
-exact post-channel offset reconstruction. Run both conformance tests with
+exact post-channel offset reconstruction. The separate [filter delay
+analysis](filter-delay-analysis.md) measures cold-start responses for all
+transmitters and local delay for each channel control. It establishes that the
+historical 50--500 first-window offset does not reliably skip transmitter
+startup. Run the focused checks with
 `python2.7 -m pytest -q -m 'not slow' tests`.
 
 Byte identity applies to the tested Linux amd64 image, source inputs, and
