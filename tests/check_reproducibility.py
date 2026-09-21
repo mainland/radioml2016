@@ -45,17 +45,27 @@ def check_runtime():
 
 
 def check_canonical_analog_source():
-    """Require exact compatibility bytes from the canonical source."""
+    """Require exact compatibility bytes and item-based random access."""
     from source_alphabet import source_alphabet
 
-    flowgraph = gr.top_block()
-    source = source_alphabet('continuous', 10000, True)
-    sink = blocks.vector_sink_f()
-    flowgraph.connect(source, sink)
-    flowgraph.run()
-    prefix = np.asarray(sink.data(), dtype=np.float32)
+    def generate(offset, count):
+        flowgraph = gr.top_block()
+        source = source_alphabet(
+            'continuous', count, True, source_offset=offset)
+        sink = blocks.vector_sink_f()
+        flowgraph.connect(source, sink)
+        flowgraph.run()
+        return np.asarray(sink.data(), dtype=np.float32)
+
+    prefix = generate(0, 10000)
     assert hashlib.sha256(prefix.tostring()).hexdigest() == (
         HISTORICAL_ANALOG_PREFIX_SHA256)
+    offset = 1234567
+    count = 4096
+    with open(os.environ['RADIOML_ANALOG_SOURCE'], 'rb') as source_file:
+        source_file.seek(offset * np.dtype('<f4').itemsize)
+        expected = np.fromfile(source_file, dtype='<f4', count=count)
+    assert np.array_equal(generate(offset, count), expected)
 
 
 def check_baseline_defaults():
@@ -66,11 +76,12 @@ def check_baseline_defaults():
         'print(json.dumps(vars(configure())))']))
     expected = {
         'seed': 201610, 'python_seed': 201610, 'numpy_seed': 201610,
-        'channel_seed': 0x1337,
+        'analog_source_seed': 201610, 'channel_seed': 0x1337,
         'channel_seed_policy': 'restart', 'scheduler': 'sts',
         'frames_per_key': 1000, 'snrs': list(range(-20, 20, 2)),
         'modulations': ['BPSK', 'QPSK', '8PSK', 'PAM4', 'QAM16', 'QAM64',
                         'GFSK', 'CPFSK', 'WBFM', 'AM-DSB', 'AM-SSB'],
+        'vary_analog_source': False,
         'output': 'RML2016.10a_dict.dat',
     }
     assert options == expected
@@ -92,7 +103,7 @@ def main():
     command = [sys.executable, 'generate_RML2016.10a.py', '--frames-per-key', '80',
                '--snrs', '-20', '18']
 
-    def run(name, extra=(), failure=False, env=None):
+    def run(name, extra=(), failure=False, env=None, expected_keys=22):
         path = os.path.join(output_dir, name + '.dat')
         with open(path + '.log', 'wb') as log:
             status = subprocess.call(command + list(extra) + ['--output', path],
@@ -104,7 +115,7 @@ def main():
         with open(path, 'rb') as source:
             content = source.read()
         data = cPickle.loads(content)
-        assert len(data) == 22
+        assert len(data) == expected_keys
         for key, values in data.items():
             assert values.shape == (80, 2, 128) and values.dtype == np.float32, key
             assert np.isfinite(values).all(), key
@@ -137,11 +148,29 @@ def main():
         changed = run(seed + '-0', seed_args)
         assert changed != stable_reference
         assert run(seed + '-1', seed_args) == changed
+    historical_wbfm = run(
+        'historical-wbfm', stable_args + [
+            '--modulations', 'WBFM', '--snrs', '18'],
+        expected_keys=1)
+    varied_analog_args = stable_args + [
+        '--vary-analog-source', '--modulations', 'WBFM', '--snrs', '18']
+    varied_analog = run(
+        'vary-analog-source-0', varied_analog_args, expected_keys=1)
+    assert varied_analog != historical_wbfm
+    assert run('vary-analog-source-1', varied_analog_args,
+               expected_keys=1) == varied_analog
+    other_analog = run(
+        'vary-analog-source-seed',
+        varied_analog_args + ['--analog-source-seed', '123'],
+        expected_keys=1)
+    assert other_analog != varied_analog
     for name, extra in (
             ('zero-channel', ['--channel-seed', '0']),
             ('unknown-channel-policy', ['--channel-seed-policy', 'random']),
             ('large-channel', ['--channel-seed', '2147483645']),
             ('large-numpy', ['--numpy-seed', '4294967296']),
+            ('large-analog-source', [
+                '--analog-source-seed', '4294967296']),
             ('zero-frames', ['--frames-per-key', '0'])):
         run(name, extra, failure=True)
     run('wrong-environment', failure=True, env=dict(os.environ, VOLK_GENERIC='0'))

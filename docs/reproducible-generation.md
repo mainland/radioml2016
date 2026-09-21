@@ -97,6 +97,29 @@ which exactly matches the recorded original flowgraph prefix. Replacing the
 runtime decoder with this stream leaves the representative compatibility
 pickle hash unchanged.
 
+### Variable analog-source segments
+
+The historical generator reconstructs its audio source for every analog
+transmission, so each one starts at canonical source offset zero. Pass
+`--vary-analog-source` to use a deterministic permutation of the 7,005 complete
+nonoverlapping 10,000-item segments instead:
+
+```sh
+./build_dataset --vary-analog-source --analog-source-seed 201610 \
+  --output varied-analog.dat
+```
+
+The source-selection RNG is independent of Python's global RNG and defaults to
+`--seed`. Changing it therefore changes analog source content without changing
+window-offset or channel draws. Segment offsets are multiples of 10,000 and no
+segment is selected twice in one run. The generator reports an error if it
+exhausts the source rather than silently reusing a segment.
+
+When the option is absent, every analog source offset remains zero and no
+source-selection random values are consumed. This preserves the compatibility
+pickle bytes. The pickle has no attribute channel, so retain the command and
+seed with the artifact.
+
 ## Seeds
 
 | Option | Default and purpose |
@@ -106,8 +129,9 @@ pickle hash unchanged.
 | `--numpy-seed` | Overrides the digital source masks; analog sources draw no mask |
 | `--channel-seed` | `0x1337` (4919); channel base seed |
 | `--channel-seed-policy` | `restart`; reuse the base for each transmission, or `advance` to change it |
+| `--analog-source-seed` | Defaults to `--seed`; permutes analog source segments when enabled |
 
-Python and NumPy seeds accept `0..4294967295`. Channel seeds
+Python, NumPy, and analog-source seeds accept `0..4294967295`. Channel seeds
 accept `1..2147483644`. GNU Radio treats zero as a time seed. With the default
 `--channel-seed-policy restart`, every transmission uses the supplied base
 seed. This follows the published generator's repeated `0x1337` constructor
@@ -120,8 +144,9 @@ With `--channel-seed-policy advance`, transmission `b`, counted from zero
 across the run, uses
 `base = 1 + ((channel_seed - 1 + 4*b) % 2147483644)`. The base advances across
 modulation and SNR boundaries and wraps within the supported range. This
-changes fading, drift, and noise realizations. It does not establish statistical independence between
-transmissions.
+changes fading, drift, and noise realizations. It is independent of the
+analog-source selection option and does not establish statistical independence
+between transmissions.
 
 Under either policy, AWGN uses `base`, sample-rate drift uses `base+1`,
 carrier-frequency drift uses `base+2`, and fading path `i` uses angle seed

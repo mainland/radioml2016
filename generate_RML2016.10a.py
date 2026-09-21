@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from generator_options import configure
 options = configure()
+from generator_options import ANALOG_SOURCE_SAMPLES
 from transmitters import transmitters
 from source_alphabet import source_alphabet
 from gnuradio import channels, gr, blocks
@@ -13,6 +14,13 @@ Generate dataset with dynamic channel model across range of SNRs
 '''
 
 apply_channel = True
+
+analog_segment_length = int(10e3)
+analog_segments = None
+if options.vary_analog_source:
+    analog_segments = range(ANALOG_SOURCE_SAMPLES // analog_segment_length)
+    analog_random = random.Random(options.analog_source_seed)
+    analog_random.shuffle(analog_segments)
 
 dataset = {}
 
@@ -39,7 +47,18 @@ for snr in snr_vals:
                   tx_len = int(20e3)
               if mod_type.modname == "QAM64":
                   tx_len = int(30e3)
-              src = source_alphabet(alphabet_type, tx_len, True)
+              analog_source_offset = 0
+              if alphabet_type == "continuous" and options.vary_analog_source:
+                  if tx_len != analog_segment_length:
+                      raise ValueError('unexpected analog transmission length')
+                  if not analog_segments:
+                      raise ValueError(
+                          'canonical analog source has no unused segments')
+                  analog_source_offset = (
+                      analog_segments.pop() * analog_segment_length)
+              src = source_alphabet(
+                  alphabet_type, tx_len, True,
+                  source_offset=analog_source_offset)
               mod = mod_type()
               fD = 1
               delays = [0.0, 0.9, 1.7]

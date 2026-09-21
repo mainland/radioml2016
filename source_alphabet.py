@@ -5,7 +5,8 @@ import numpy as np
 import os
 
 class source_alphabet(gr.hier_block2):
-    def __init__(self, dtype="discrete", limit=10000, randomize=False):
+    def __init__(self, dtype="discrete", limit=10000, randomize=False,
+                 source_offset=0):
         if(dtype == "discrete"):
             gr.hier_block2.__init__(self, "source_alphabet",
                 gr.io_signature(0,0,0),
@@ -35,6 +36,9 @@ class source_alphabet(gr.hier_block2):
 
             canonical_source = os.environ.get("RADIOML_ANALOG_SOURCE")
             if canonical_source is None:
+                if source_offset:
+                    raise ValueError(
+                        "source offsets require the canonical analog source")
                 # Provenance: this is the original RadioML conversion path. It
                 # remains available to the historical image; reproducible
                 # generation sets RADIOML_ANALOG_SOURCE to the byte-verified
@@ -53,6 +57,10 @@ class source_alphabet(gr.hier_block2):
                                   canonical_source)
                 self.src = blocks.file_source(
                     gr.sizeof_float, canonical_source, False)
+                if source_offset < 0 or not self.src.seek(
+                        source_offset, os.SEEK_SET):
+                    raise ValueError("invalid analog source offset: %r" %
+                                     source_offset)
                 last = self.src
             self.limit = blocks.head(gr.sizeof_float, limit)
 

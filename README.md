@@ -82,6 +82,10 @@ The representative 80-window, two-label compatibility fixture has SHA-256
 The test suite treats this as a golden value, not merely as equality between
 two fresh runs.
 
+Do not pass `--vary-analog-source` for this profile. That option changes the
+repeated analog source content. The variant is reproducible, but it is not the
+closest mirror of the distributed dataset's generator.
+
 For a smaller run:
 
 ```sh
@@ -98,7 +102,7 @@ patched runtime this repeats the private channel streams. It does not replay
 the original shared RNG interleaving.
 
 Pass `--channel-seed-policy advance` to advance the base by four for each
-transmission, without changing the source-selection policy. This reproduces the
+transmission, independently of analog source selection. This reproduces the
 earlier advancing-seed fixture:
 `bf8183edabea8e3c608ec5cde7cfa6818187ce999d82dbb7ab3a6ed1def2f697`.
 The [generation guide](docs/reproducible-generation.md#seeds) defines the
@@ -121,6 +125,25 @@ Its first 10,000 items have SHA-256
 matching the output previously measured through the original GNU Radio source
 flowgraph. The historical image retains the MP3 path for provenance work; the
 reproducible generator requires the canonical stream installed in its image.
+
+### Vary the analog source segment
+
+By default, every analog transmission retains the historical behavior of
+starting at item zero of the source. Add `--vary-analog-source` to assign each
+analog transmission a different aligned 10,000-item segment:
+
+```sh
+./build_dataset --vary-analog-source --analog-source-seed 201610 \
+  --output varied-analog.dat
+```
+
+The option permutes all 7,005 complete segments without replacement. Its
+separate RNG defaults to `--seed`, so segment selection does not perturb
+window-position or channel random streams. The generator fails instead of
+reusing source material if a run requires more segments. Omitting the option
+consumes no source-selection draws and preserves the compatibility pickle
+hash. The pickle contains only windows and labels, so retain the command and
+seed with the generated artifact.
 
 See [reproducible generation](docs/reproducible-generation.md) for seed routing,
 runtime changes, and the scope of reproducibility.
