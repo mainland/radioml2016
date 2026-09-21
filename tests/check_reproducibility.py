@@ -138,6 +138,7 @@ def check_baseline_defaults():
                         'GFSK', 'CPFSK', 'WBFM', 'AM-DSB', 'AM-SSB'],
         'sps': None, 'ebw': None, 'fixed_am_ssb': False, 'fixed_wbfm': False,
         'settled_windows': False, 'vary_analog_source': False,
+        'snr_mode': 'historical',
         'output': 'RML2016.10a_dict.dat',
     }
     assert options == expected
@@ -210,6 +211,16 @@ def main():
         '--fixed-am-ssb', '--modulations', 'AM-SSB', '--snrs', '18']
     fixed = run('fixed-am-ssb-0', fixed_args, expected_keys=1)
     assert run('fixed-am-ssb-1', fixed_args, expected_keys=1) == fixed
+    scaled_args = fixed_args + ['--snr-mode', 'scaled']
+    scaled = run('scaled-snr-0', scaled_args, expected_keys=1)
+    assert scaled != fixed
+    assert run('scaled-snr-1', scaled_args, expected_keys=1) == scaled
+    calibrated_args = fixed_args + ['--snr-mode', 'calibrated']
+    calibrated = run(
+        'calibrated-snr-0', calibrated_args, expected_keys=1)
+    assert calibrated != scaled
+    assert run('calibrated-snr-1', calibrated_args,
+               expected_keys=1) == calibrated
     historical_wbfm = run(
         'historical-wbfm', stable_args + [
             '--modulations', 'WBFM', '--snrs', '18'],

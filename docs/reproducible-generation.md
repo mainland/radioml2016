@@ -236,11 +236,34 @@ measured finite response boundary.
 
 ## SNR-label semantics
 
-The SNR key preserves the historical generator label, but it is not a
-calibrated post-channel SNR. The generator passes `10**(-label/10)` as the
-complex noise-source amplitude. Noise power therefore changes by 2 dB for each
-1 dB change in the label. Measured SNR also depends on the modulation and
-fading realization.
+The generator provides three explicit interpretations of the SNR key:
+
+| `--snr-mode` | Noise amplitude | Meaning |
+| --- | --- | --- |
+| `historical` | `10**(-label/10)` | Original implementation; noise power changes 2 dB per 1 dB label step |
+| `scaled` | `10**(-label/20)` | Correct dB-to-amplitude slope, assuming unit signal and unit-noise power |
+| `calibrated` | Measured per transmission | Target aggregate SNR over the windows exported from that transmission |
+
+`historical` is the default and preserves the compatibility pickle. `scaled`
+fixes the dimensional error but does not make the label an accurate SNR when
+the signal path or unit-noise realization has nonunit power.
+
+`calibrated` first materializes the exact finite waveform presented to the
+channel. It runs that waveform and channel seed with zero noise to obtain
+clean post-impairment samples and with unit-amplitude noise to obtain the
+realized noise residual. For selected windows with aggregate clean power
+`P_signal` and unit-noise power `P_noise,1`, it requests
+
+```text
+sqrt(P_signal / (P_noise,1 * 10**(label/10))).
+```
+
+The final channel run uses the same input and seed. This targets the label over
+the exact exported windows and includes fading, filter startup if selected,
+and modulation-dependent power. Signal power means the complete complex RF
+waveform, including an AM carrier. It does not isolate the information-bearing
+sideband, so a carrier-to-sideband or demodulated quality metric remains a
+separate measurement.
 
 `tests/check_channel_controls.py` isolates AWGN, carrier drift, sample-rate
 drift, and fading, then exercises their supported combination. For its
@@ -283,7 +306,9 @@ between transmissions.
 
 Under either policy, AWGN uses `base`, sample-rate drift uses `base+1`,
 carrier-frequency drift uses `base+2`, and fading path `i` uses angle seed
-`base+i` and walk seed `base+i+1`.
+`base+i` and walk seed `base+i+1`. Paired clean, unit-noise, and final runs of
+one transmission reuse its base seed. Advancing applies once per transmission,
+not once per measurement run.
 
 ## Deterministic evaluation
 
@@ -301,8 +326,7 @@ execution order and is therefore part of the reproducibility contract.
 
 By default, the generator retains the original loop order, source lengths,
 modulators, channel parameters apart from seeds, window sampling, and
-normalization by
-`sum(abs(window))`. CLI parsing and runtime checks live in
+normalization by `sum(abs(window))`. CLI parsing and runtime checks live in
 [generator_options.py](../generator_options.py). Source and transmitter code
 retain their historical defaults. The image sets `PYTHONHASHSEED=0`,
 `VOLK_GENERIC=1`, `OMP_NUM_THREADS=1`, `OPENBLAS_NUM_THREADS=1`, and the

@@ -5,6 +5,8 @@ import os
 import random
 import sys
 
+from snr_policy import SNR_MODES
+
 MODULATIONS = ('BPSK', 'QPSK', '8PSK', 'PAM4', 'QAM16', 'QAM64', 'GFSK',
                'CPFSK', 'WBFM', 'AM-DSB', 'AM-SSB')
 ENVIRONMENT = dict(PYTHONHASHSEED='0', VOLK_GENERIC='1',
@@ -51,6 +53,9 @@ def configure():
     parser.add_argument('--settled-windows', action='store_true',
                         help='select first windows after the measured '
                         'transmitter and channel startup response')
+    parser.add_argument('--snr-mode', choices=SNR_MODES, default='historical',
+                        help='noise policy: historical, slope-corrected scaled, '
+                        'or signal-referenced calibrated (default: historical)')
     parser.add_argument('--vary-analog-source', action='store_true',
                         help='draw nonoverlapping 10000-sample source segments '
                         'for analog transmissions')

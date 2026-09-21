@@ -83,11 +83,12 @@ The test suite treats this as a golden value, not merely as equality between
 two fresh runs.
 
 Do not pass `--fixed-am-ssb`, `--fixed-wbfm`, `--settled-windows`,
-`--vary-analog-source`, `--sps`, or `--ebw` for this profile. The first four
-options repair known historical behavior or repeated source content. The range
-options change transmitter parameters and consume additional Python RNG draws,
-even when both endpoints are equal. Those variants are reproducible, but they
-are not the closest mirror of the distributed dataset's generator.
+`--vary-analog-source`, `--sps`, `--ebw`, or a nonhistorical `--snr-mode` for
+this profile. The first four options repair known historical behavior or
+repeated source content. The range options change transmitter parameters and
+consume additional Python RNG draws, even when both endpoints are equal. The
+SNR modes change noise scaling. Those variants are reproducible, but they are
+not the closest mirror of the distributed dataset's generator.
 
 For a smaller run:
 
@@ -204,6 +205,28 @@ the conservative RRC guard. Omitting `--settled-windows` preserves the original
 50--500 draw and default bytes. See [filter delay
 analysis](docs/filter-delay-analysis.md) for the measurements, formulas, and
 limits.
+
+### Select an SNR policy
+
+The default `--snr-mode historical` preserves the original expression
+`10**(-label/10)` for the complex-noise amplitude. Its noise power therefore
+changes by 2 dB for each 1 dB label step. `--snr-mode scaled` uses
+`10**(-label/20)`, which corrects that slope but does not account for the
+signal power or the realized unit-noise power.
+
+Use `--snr-mode calibrated` when the label should be the aggregate SNR of the
+actual exported windows:
+
+```sh
+./build_dataset --snr-mode calibrated --fixed-am-ssb \
+  --output calibrated.dat
+```
+
+For each transmission, calibrated mode replays the finite channel input and
+channel seed with zero and unit noise, measures both powers over exactly the
+selected windows, and solves for the noise amplitude. Signal power is the
+total post-impairment complex waveform. It includes an AM carrier; it is not a
+measurement of only the information-bearing sideband.
 
 See [reproducible generation](docs/reproducible-generation.md) for seed routing,
 runtime changes, and the scope of reproducibility.
