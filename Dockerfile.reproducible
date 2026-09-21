@@ -16,7 +16,7 @@ RUN test "$(git -C /opt/replay-src/gnuradio rev-parse HEAD)" = 59daaff0d9d04373d
  && cmake --build . --target install \
  && cp /opt/replay-control/gnuradio-3.7.10.1-fastnoise.patch /opt/replay-provenance/ \
  && sha256sum /opt/replay-control/gnuradio-3.7.10.1-fastnoise.patch > /opt/replay-provenance/deterministic-runtime.sha256 \
- && printf '%s\n' '{"schema":1,"runtime":"radioml2016-per-instance-fastnoise-v2","gnuradio_revision":"59daaff0d9d04373d3a6b14ea7b46e080bad7a1e","channel_seeds":{"awgn":"base","sro":"base+1","cfo":"base+2","fading":"base+i; base+i+1"}}' > /opt/replay-provenance/deterministic-runtime.json
+ && printf '%s\n' '{"schema":1,"runtime":"radioml2016-canonical-audio-v3","gnuradio_revision":"59daaff0d9d04373d3a6b14ea7b46e080bad7a1e","channel_seeds":{"awgn":"base","sro":"base+1","cfo":"base+2","fading":"base+i; base+i+1"}}' > /opt/replay-provenance/deterministic-runtime.json
 
 # Avoid hash randomization, CPU-specific VOLK kernels and threaded reductions.
 # Byte identity applies to this image, its inputs, and its execution settings.
@@ -33,6 +33,37 @@ RUN apt-get update \
       > /opt/replay-provenance/test-packages.tsv \
  && python2.7 -m pytest --version \
       > /opt/replay-provenance/pytest.txt 2>&1
+
+# Freeze the analog source after the exact historical decoder and conversion
+# chain.  The derived float stream removes MP3 decoding from dataset generation
+# while retaining byte-compatible source samples.
+COPY scripts/decode_analog_source.cc /opt/replay-control/
+COPY source_material/serial-s01-e01.mp3 /opt/replay-input/
+RUN echo 'dad05be9b299f3d44bde87d161d525ad0660109ada40b66e33d12999594a069b  /opt/replay-input/serial-s01-e01.mp3' \
+      | sha256sum -c - \
+ && c++ -O2 -std=c++11 \
+      -I/opt/replay-src/gr-mediatools/include \
+      /opt/replay-control/decode_analog_source.cc \
+      /opt/replay-src/gr-mediatools/lib/mediatools_audiosource_impl.cc \
+      -lavformat -lavcodec -lavutil -lboost_thread -lboost_system -pthread \
+      -o /opt/replay-control/decode_analog_source \
+ && mkdir -p /opt/rml/share/radioml2016 \
+ && /opt/replay-control/decode_analog_source \
+      /opt/replay-input/serial-s01-e01.mp3 \
+      /opt/rml/share/radioml2016/serial-s01-e01.f32 \
+      > /opt/replay-provenance/analog-source-decode.txt \
+ && test "$(stat -c %s /opt/rml/share/radioml2016/serial-s01-e01.f32)" = 280227552 \
+ && echo 'dfa1cdf1d11950f099f685c9c0d2a1197019415ffcf50c8d8f1988dc532a8325  /opt/rml/share/radioml2016/serial-s01-e01.f32' \
+      | sha256sum -c - \
+ && sha256sum /opt/replay-input/serial-s01-e01.mp3 \
+      /opt/rml/share/radioml2016/serial-s01-e01.f32 \
+      > /opt/replay-provenance/analog-source.sha256 \
+ && printf '%s\n' '{"schema":1,"source_sha256":"dad05be9b299f3d44bde87d161d525ad0660109ada40b66e33d12999594a069b","decoded_sha256":"dfa1cdf1d11950f099f685c9c0d2a1197019415ffcf50c8d8f1988dc532a8325","decoded_shorts":140113775,"emitted_float32_samples":70056888,"mapping":"float32(source_int16[0::2])*float32(1/65535)","decoded_sample_rate_hz":44100,"stream_item_rate_hz":22050}' \
+      > /opt/replay-provenance/analog-source.json \
+ && rm /opt/replay-control/decode_analog_source \
+      /opt/replay-input/serial-s01-e01.mp3
+
+ENV RADIOML_ANALOG_SOURCE=/opt/rml/share/radioml2016/serial-s01-e01.f32
 
 # Match the historical image's default account; override for a custom base.
 ARG USERNAME=radioml

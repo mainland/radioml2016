@@ -35,6 +35,12 @@ Both images are required: the reproducible image extends the historical
 candidate. The [historical environment guide](docs/historical-environment.md)
 explains the selected versions and the noise-evidence investigation.
 
+During the reproducible-image build, the pinned historical decoder converts
+the MP3 source into the exact float32 stream consumed by the analog
+transmitters. The build verifies both the input MP3 and derived stream by
+SHA-256. Dataset generation reads that canonical stream, so later runs do not
+depend on MP3 decoder behavior.
+
 The image uses the January 10, 2016 `gr-mapper` revision before constellation
 normalization was introduced. That choice is based on the distributed
 dataset's relative SNR across six digital modulations, not on its publication
@@ -71,6 +77,11 @@ interleaving, and complete environment are unknown. The supported claim is a
 deterministic reconstruction that preserves the known generator semantics and
 output schema in the pinned Linux amd64 image.
 
+The representative 80-window, two-label compatibility fixture has SHA-256
+`a1dfcf6d9d5a5e574ad5538ce069a90c7b6b0b0348bc81b9910b640c6c2e928f`.
+The test suite treats this as a golden value, not merely as equality between
+two fresh runs.
+
 For a smaller run:
 
 ```sh
@@ -92,6 +103,24 @@ earlier advancing-seed fixture:
 `bf8183edabea8e3c608ec5cde7cfa6818187ce999d82dbb7ab3a6ed1def2f697`.
 The [generation guide](docs/reproducible-generation.md#seeds) defines the
 seed range, component routing, and wraparound.
+
+### Canonical analog source
+
+The historical continuous-source path decodes
+`source_material/serial-s01-e01.mp3`, groups consecutive mono `int16` samples
+as complex values, scales by `float32(1/65535)`, and retains the real part.
+Consequently, it keeps every other decoded mono sample. The reproducible image
+performs that exact conversion once at build time with
+[`scripts/decode_analog_source.cc`](scripts/decode_analog_source.cc).
+
+The canonical stream contains 70,056,888 little-endian float32 items and has
+SHA-256
+`dfa1cdf1d11950f099f685c9c0d2a1197019415ffcf50c8d8f1988dc532a8325`.
+Its first 10,000 items have SHA-256
+`95aa6c9f2aa1ff9cf37df432d6ee47170859cfdef2050ffcc684e5487580e1fa`,
+matching the output previously measured through the original GNU Radio source
+flowgraph. The historical image retains the MP3 path for provenance work; the
+reproducible generator requires the canonical stream installed in its image.
 
 See [reproducible generation](docs/reproducible-generation.md) for seed routing,
 runtime changes, and the scope of reproducibility.

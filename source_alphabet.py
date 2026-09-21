@@ -2,6 +2,7 @@
 from gnuradio import gr, blocks
 import mediatools
 import numpy as np
+import os
 
 class source_alphabet(gr.hier_block2):
     def __init__(self, dtype="discrete", limit=10000, randomize=False):
@@ -32,13 +33,28 @@ class source_alphabet(gr.hier_block2):
                 gr.io_signature(0,0,0),
                 gr.io_signature(1,1,gr.sizeof_float))
 
-            self.src = mediatools.audiosource_s(["source_material/serial-s01-e01.mp3"])
-            self.convert2 = blocks.interleaved_short_to_complex()
-            self.convert3 = blocks.multiply_const_cc(1.0/65535)
-            self.convert = blocks.complex_to_float()
+            canonical_source = os.environ.get("RADIOML_ANALOG_SOURCE")
+            if canonical_source is None:
+                # Provenance: this is the original RadioML conversion path. It
+                # remains available to the historical image; reproducible
+                # generation sets RADIOML_ANALOG_SOURCE to the byte-verified
+                # float32 stream derived through this exact chain.
+                self.src = mediatools.audiosource_s(
+                    ["source_material/serial-s01-e01.mp3"])
+                self.convert2 = blocks.interleaved_short_to_complex()
+                self.convert3 = blocks.multiply_const_cc(1.0/65535)
+                self.convert = blocks.complex_to_float()
+                self.connect(self.src, self.convert2, self.convert3,
+                             self.convert)
+                last = self.convert
+            else:
+                if not os.path.isfile(canonical_source):
+                    raise IOError("canonical analog source not found: " +
+                                  canonical_source)
+                self.src = blocks.file_source(
+                    gr.sizeof_float, canonical_source, False)
+                last = self.src
             self.limit = blocks.head(gr.sizeof_float, limit)
-            self.connect(self.src,self.convert2,self.convert3, self.convert)
-            last = self.convert
 
         # connect head or not, and connect to output
         if(limit==None):

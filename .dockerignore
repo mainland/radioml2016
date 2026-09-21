@@ -1,5 +1,6 @@
 .git
-source_material
+source_material/*
+!source_material/serial-s01-e01.mp3
 __pycache__
 **/__pycache__
 *.pyc

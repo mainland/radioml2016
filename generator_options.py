@@ -8,8 +8,10 @@ import sys
 MODULATIONS = ('BPSK', 'QPSK', '8PSK', 'PAM4', 'QAM16', 'QAM64', 'GFSK',
                'CPFSK', 'WBFM', 'AM-DSB', 'AM-SSB')
 ENVIRONMENT = dict(PYTHONHASHSEED='0', VOLK_GENERIC='1',
-                   OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1')
-RUNTIME = 'radioml2016-per-instance-fastnoise-v2'
+                   OMP_NUM_THREADS='1', OPENBLAS_NUM_THREADS='1',
+                   RADIOML_ANALOG_SOURCE=(
+                       '/opt/rml/share/radioml2016/serial-s01-e01.f32'))
+RUNTIME = 'radioml2016-canonical-audio-v3'
 
 
 def configure():
@@ -59,6 +61,11 @@ def configure():
         parser.error('missing deterministic runtime; build Dockerfile.reproducible')
     if runtime.get('runtime') != RUNTIME:
         parser.error('unsupported deterministic runtime: %r' % runtime)
+    analog_source = os.environ['RADIOML_ANALOG_SOURCE']
+    if (not os.path.isfile(analog_source) or
+            os.path.getsize(analog_source) != 280227552):
+        parser.error('missing canonical analog source; rebuild '
+                     'Dockerfile.reproducible')
     import numpy as np
     random.seed(args.python_seed)
     np.random.seed(args.numpy_seed)

@@ -1,0 +1,37 @@
+{
+  "conclusion": "The old golden fixture belongs to the October mapper. The selected January mapper produces the same bytes before and after cleanup.",
+  "date": "2026-09-25",
+  "generation_arguments": [
+    "--frames-per-key",
+    "80",
+    "--snrs",
+    "-20",
+    "18"
+  ],
+  "generator_after_cleanup_sha256": "9b8744f2b433e850686cef4445401da1fa9e4a15ef55d9b8d90586e6f36253f5",
+  "generator_before_cleanup_sha256": "e3406d9dd204fad5e290243a9439f2d282c60cbb0ea315e1aa8ddd42c79d37dd",
+  "interventions": "all defaults, historical SNR policy",
+  "january_mapper": {
+    "cleaned_generator_pickle_sha256": "bf8183edabea8e3c608ec5cde7cfa6818187ce999d82dbb7ab3a6ed1def2f697",
+    "image_id": "sha256:d79d833df84c954151a179d804aa1d0422f10c154097ab2c79d107db2ba19dfc",
+    "pre_cleanup_generator_pickle_sha256": "bf8183edabea8e3c608ec5cde7cfa6818187ce999d82dbb7ab3a6ed1def2f697",
+    "revision": "463f9e94f5ea45e5be64bae06291423ead3b70f2"
+  },
+  "modulations": "all 11, in generator order",
+  "october_mapper_control": {
+    "change": "Rebuild only gr-mapper in the January reproducible image using the October revision and the existing CMake build configuration.",
+    "cleaned_generator_pickle_sha256": "c1158937ac8d07b446f105a49fdda8be4176391b529d2eadb0bf223ec6059bf9",
+    "image_id": "sha256:77a8d20f66541696c7735b9e6eb80f58811b437f5f4c3d04889a6769dc92dde8",
+    "revision": "15e71bf01be68d427ed9f37966b83efc1180a1d5"
+  },
+  "scheduler": "sts",
+  "schema": "radioml2016-baseline-mapper-control",
+  "schema_version": 1,
+  "scope": "Representative 80-window, two-label fixture. This establishes the source of the golden-hash mismatch, not identity with the distributed RadioML dataset or portability to arbitrary rebuilt environments.",
+  "seeds": {
+    "channel": 4919,
+    "numpy": 201610,
+    "python": 201610
+  },
+  "source_before_cleanup": "d0ffd1c4af7af9b26232a1c257ad693151f3b46e"
+}

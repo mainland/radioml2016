@@ -25,6 +25,11 @@ extends the historical candidate. `RML_IMAGE` may select another compatible
 image. Preserve the source commit, built-image identity, command line, and
 output hash with each generated artifact.
 
+The reproducible-image build converts the MP3 input into a canonical analog
+source stream and verifies both files by SHA-256. Generation therefore does
+not invoke the MP3 decoder. The historical image retains the original decoder
+path for evidence collection.
+
 The default output retains the original pickle protocol 0 and
 `dict[(modulation, snr)] -> float32[1000, 2, 128]` layout. Python 3 can read it
 using `pickle.load(stream, encoding='latin1')`. For smaller runs, use
@@ -33,18 +38,64 @@ Modulations follow transmitter order, with digital paths before analog paths.
 Streams continue across selected keys and transmissions, so a subset run need
 not equal slicing a full dataset.
 
-For the representative `--frames-per-key 80 --snrs -20 18` invocation,
-the restarting-channel pickle has SHA-256
+For the representative `--frames-per-key 80 --snrs -20 18` invocation, the
+Baseline pickle SHA-256 is
 `a1dfcf6d9d5a5e574ad5538ce069a90c7b6b0b0348bc81b9910b640c6c2e928f`.
-Adding `--channel-seed-policy advance` instead produces
+Adding `--channel-seed-policy advance` produces
 `bf8183edabea8e3c608ec5cde7cfa6818187ce999d82dbb7ab3a6ed1def2f697`.
-The regression requires both literal hashes and fresh-process repeatability.
+The slow regression requires both literal digests and repeatability across
+fresh processes. The [baseline mapper control](../evidence/baseline.json)
+used advancing seeds. Changing only its mapper to the October revision
+produces the former `c1158937...` fixture. Removing unused generator imports
+leaves that January output unchanged. These checks detect changes that
+fresh-process repeatability alone would miss. They do not establish that the
+selected environment generated the distributed dataset.
 
 Generation selects GNU Radio's single-thread scheduler (`STS`) before any
 flowgraph is constructed. The reproducibility fixture requires identical
 pickle bytes across fresh STS processes. Use `--scheduler tpb` only to
 investigate the historical thread-per-block scheduler (`TPB`). TPB is not part
 of the reproducibility guarantee for parameter or seed variations.
+
+## Generator variants
+
+### Canonical analog source
+
+The original continuous-source flowgraph uses the pinned mediatools decoder,
+passes its mono `int16` stream through `interleaved_short_to_complex`,
+multiplies by `float32(1/65535)`, and retains output zero from
+`complex_to_float`. It therefore retains even-indexed mono samples rather than
+performing an ordinary mono conversion. The source block emits silence after
+end of file, so an unbounded GNU Radio sink cannot be used to discover the
+decoded length.
+
+The decoded mono audio is sampled at 44,100 samples/s. Keeping every other
+sample leaves 22,050 source items per second of the recording, but all three
+analog transmitters interpret those items at 44,100 samples/s. The implied
+playback is therefore twice as fast as the decoded recording. This sample
+selection applies no antialiasing filter, so source content above 11,025 Hz
+can alias before modulation. Freezing the stream preserves both the time-scale
+change and any aliasing from that selection. It does not measure how much
+high-frequency content the recording contains.
+
+At image-build time,
+[`decode_analog_source.cc`](../scripts/decode_analog_source.cc) uses the same
+pinned mediatools implementation, stops when its decoder reaches end of file,
+and reproduces the even-sample float32 mapping. The verified input and output
+are:
+
+| Artifact | Size or count | SHA-256 |
+| --- | ---: | --- |
+| `serial-s01-e01.mp3` | 25 MiB | `dad05be9b299f3d44bde87d161d525ad0660109ada40b66e33d12999594a069b` |
+| Canonical `<f4` stream | 70,056,888 items | `dfa1cdf1d11950f099f685c9c0d2a1197019415ffcf50c8d8f1988dc532a8325` |
+
+The decoder emits 140,113,775 mono shorts. Keeping global even indexes yields
+70,056,888 floats, including the final even-indexed sample. The first 10,000
+canonical items have SHA-256
+`95aa6c9f2aa1ff9cf37df432d6ee47170859cfdef2050ffcc684e5487580e1fa`,
+which exactly matches the recorded original flowgraph prefix. Replacing the
+runtime decoder with this stream leaves the representative compatibility
+pickle hash unchanged.
 
 ## Seeds
 
@@ -94,9 +145,10 @@ The generator retains the original loop order, source lengths, modulators,
 channel parameters apart from seeds, window sampling, and normalization by
 `sum(abs(window))`. CLI parsing and runtime checks live in
 [generator_options.py](../generator_options.py). Source and transmitter code
-remain unchanged. The image sets `PYTHONHASHSEED=0`, `VOLK_GENERIC=1`,
-`OMP_NUM_THREADS=1`, and `OPENBLAS_NUM_THREADS=1` before Python starts.
-The helper requires these settings, Python 2.7, and the patched runtime marker.
+retain their historical defaults. The image sets `PYTHONHASHSEED=0`,
+`VOLK_GENERIC=1`, `OMP_NUM_THREADS=1`, `OPENBLAS_NUM_THREADS=1`, and the
+canonical analog-source path before Python starts. The helper requires these
+settings, the verified source size, Python 2.7, and the patched runtime marker.
 
 ## Validation and limits
 

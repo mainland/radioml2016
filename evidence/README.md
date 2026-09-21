@@ -4,10 +4,12 @@ The noise and mapper reports are byte-preserved observations from the
 September 2026 investigation. They let a reviewer inspect the measurements
 behind the historical environment and mapper choices without first generating
 three full datasets. They are not new validation results for subsequent code
-changes.
+changes. The separate baseline control identifies which mapper produces the
+golden fixture used by the reproducibility test.
 
 | Reports | Recorded observation | Reproduce and interpret |
 | --- | --- | --- |
+| [Baseline mapper control](baseline.json) | January and October mappers produce distinct fixture hashes. Removing unused imports leaves the January output unchanged. | [Baseline generation](../docs/reproducible-generation.md#build-and-run) |
 | [Noise pools](noise/pool-comparison.json) | The Boost MT pool seeded with 4919 fits all 1,000 AM-SSB/-20 windows. Alternative pools fail the same criterion. | [Noise procedure](../docs/noise-evidence.md) |
 | [AM-SSB/+18 control](noise/pool-comparison-amssb-18.json) | Tests the noise model where residual message leakage is more visible. | [Noise procedure](../docs/noise-evidence.md#am-ssb-at-18-db) |
 | [Selector recurrence](noise/lrand48.json) | 220 of 1,000 windows follow 128 consecutive historical `lrand48` selections. | [Recurrence test](../docs/noise-evidence.md#5-test-the-order-of-the-indices) |
@@ -40,3 +42,20 @@ The repository retains these small reports and the commands to regenerate the
 evidence. The original dataset, candidate datasets, generation logs, and built
 images must be supplied or regenerated separately. No report recovers the full
 original runtime or the dataset's unknown seeds.
+
+The baseline control records mapper revisions, image identities, generator
+hashes, seeds, and output hashes. Holding the generator and environment fixed,
+it reproduces the former golden hash by changing only the January mapper to
+the October revision. It also records identical January output before and
+after removal of unused generator imports. These observations establish the
+fixture's mapper dependence, without identifying the original dataset's full
+environment.
+
+To compare the fixture hashes, use the January and October builds described
+in the mapper procedure and generate with `--frames-per-key 80 --snrs -20 18
+--channel-seed-policy advance`, leaving other options at defaults. Both this
+control and the full mapper comparison used advancing seeds. Their recorded
+hashes and SNR offset do not describe the restarting default generator. The
+separate seed-policy report records the restarting control. The earlier
+report's source and image identities refer to the measured snapshots. The pre-cleanup source snapshot and measured
+image layers are not included in a clone.
