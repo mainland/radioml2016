@@ -21,6 +21,10 @@ def configure():
     parser.add_argument('--channel-seed', type=lambda value: int(value, 0),
                         default=0x1337,
                         help='channel base seed (default: 0x1337)')
+    parser.add_argument('--channel-seed-policy',
+                        choices=('restart', 'advance'), default='restart',
+                        help='restart the base seed for each transmission or '
+                        'advance it by 4 (default: restart)')
     parser.add_argument('--frames-per-key', type=int, default=1000)
     parser.add_argument('--snrs', type=int, nargs='+', default=list(range(-20, 20, 2)))
     parser.add_argument('--modulations', choices=MODULATIONS, nargs='+',

@@ -1,0 +1,277 @@
+{
+  "advance_comparison": {
+    "method": "Median original-minus-candidate fixed-slope intercept across modulations; RMS residual is computed after removing that common difference.",
+    "modulation_count": 6,
+    "original_minus_candidate_offset_db": 2.8711381064118413,
+    "residuals_db": {
+      "8PSK": -0.580023634246758,
+      "BPSK": 0.0940230449199504,
+      "PAM4": -0.0940230449199504,
+      "QAM16": 0.685946956364047,
+      "QAM64": -0.23582413086048248,
+      "QPSK": 0.6702314564322513
+    },
+    "rmse_db": 0.4707183402470019
+  },
+  "advance_pickle_sha256": "0488f50aa7c7bd9ca6f151fd6cdaed6c18dc5390416585577db3744b6f6cc475",
+  "configuration": {
+    "channel_seed": 4919,
+    "channel_seed_policy": "restart",
+    "fit_max_snr_db": 25.0,
+    "fit_min_snr_db": -8.0,
+    "frames_per_key": 1000,
+    "numpy_seed": 201610,
+    "oob_cutoff": 0.15,
+    "python_seed": 201610,
+    "scheduler": "sts",
+    "snr_mode": "historical"
+  },
+  "curves": [
+    {
+      "modulation": "BPSK",
+      "original": {
+        "fitted_intercept_db": 5.218738605973732,
+        "fitted_slope_db_per_label_db": 1.9865414594707764,
+        "fixed_slope_db_per_label_db": 2.0,
+        "fixed_slope_intercept_db": 5.177225564890363,
+        "point_count": 8,
+        "snr_labels_db": [
+          -6,
+          -4,
+          -2,
+          0,
+          2,
+          4,
+          6,
+          8
+        ]
+      },
+      "restart": {
+        "fitted_intercept_db": 5.0779213386545505,
+        "fitted_slope_db_per_label_db": 2.006176997790201,
+        "fixed_slope_db_per_label_db": 2.0,
+        "fixed_slope_intercept_db": 5.062341486429911,
+        "point_count": 8,
+        "snr_labels_db": [
+          -6,
+          -4,
+          -2,
+          0,
+          2,
+          4,
+          6,
+          8
+        ]
+      }
+    },
+    {
+      "modulation": "QPSK",
+      "original": {
+        "fitted_intercept_db": 5.472036687798559,
+        "fitted_slope_db_per_label_db": 1.9804480776999562,
+        "fixed_slope_db_per_label_db": 2.0,
+        "fixed_slope_intercept_db": 5.402781682674661,
+        "point_count": 8,
+        "snr_labels_db": [
+          -6,
+          -4,
+          -2,
+          0,
+          2,
+          4,
+          6,
+          8
+        ]
+      },
+      "restart": {
+        "fitted_intercept_db": 5.2909680843818725,
+        "fitted_slope_db_per_label_db": 2.00698284726091,
+        "fixed_slope_db_per_label_db": 2.0,
+        "fixed_slope_intercept_db": 5.298511422099304,
+        "point_count": 8,
+        "snr_labels_db": [
+          -6,
+          -4,
+          -2,
+          0,
+          2,
+          4,
+          6,
+          8
+        ]
+      }
+    },
+    {
+      "modulation": "8PSK",
+      "original": {
+        "fitted_intercept_db": 4.950446237943088,
+        "fitted_slope_db_per_label_db": 1.9987659710477301,
+        "fixed_slope_db_per_label_db": 2.0,
+        "fixed_slope_intercept_db": 4.9448142594625875,
+        "point_count": 9,
+        "snr_labels_db": [
+          -6,
+          -4,
+          -2,
+          0,
+          2,
+          4,
+          6,
+          8,
+          10
+        ]
+      },
+      "restart": {
+        "fitted_intercept_db": 4.945971997025447,
+        "fitted_slope_db_per_label_db": 1.9899517632090125,
+        "fixed_slope_db_per_label_db": 2.0,
+        "fixed_slope_intercept_db": 4.918331780135951,
+        "point_count": 9,
+        "snr_labels_db": [
+          -6,
+          -4,
+          -2,
+          0,
+          2,
+          4,
+          6,
+          8,
+          10
+        ]
+      }
+    },
+    {
+      "modulation": "PAM4",
+      "original": {
+        "fitted_intercept_db": 12.322501152403746,
+        "fitted_slope_db_per_label_db": 1.9876782185146993,
+        "fixed_slope_db_per_label_db": 2.0,
+        "fixed_slope_intercept_db": 12.30679856458151,
+        "point_count": 9,
+        "snr_labels_db": [
+          -10,
+          -8,
+          -6,
+          -4,
+          -2,
+          0,
+          2,
+          4,
+          6
+        ]
+      },
+      "restart": {
+        "fitted_intercept_db": 12.18247585647346,
+        "fitted_slope_db_per_label_db": 2.004040870172231,
+        "fixed_slope_db_per_label_db": 2.0,
+        "fixed_slope_intercept_db": 12.177708052530924,
+        "point_count": 8,
+        "snr_labels_db": [
+          -8,
+          -6,
+          -4,
+          -2,
+          0,
+          2,
+          4,
+          6
+        ]
+      }
+    },
+    {
+      "modulation": "QAM16",
+      "original": {
+        "fitted_intercept_db": 15.314845468423563,
+        "fitted_slope_db_per_label_db": 1.9882203566554586,
+        "fixed_slope_db_per_label_db": 2.0,
+        "fixed_slope_intercept_db": 15.353324519520063,
+        "point_count": 8,
+        "snr_labels_db": [
+          -10,
+          -8,
+          -6,
+          -4,
+          -2,
+          0,
+          2,
+          4
+        ]
+      },
+      "restart": {
+        "fitted_intercept_db": 15.283180908015202,
+        "fitted_slope_db_per_label_db": 2.002312153450607,
+        "fixed_slope_db_per_label_db": 2.0,
+        "fixed_slope_intercept_db": 15.296816824145953,
+        "point_count": 8,
+        "snr_labels_db": [
+          -10,
+          -8,
+          -6,
+          -4,
+          -2,
+          0,
+          2,
+          4
+        ]
+      }
+    },
+    {
+      "modulation": "QAM64",
+      "original": {
+        "fitted_intercept_db": 21.529188470612517,
+        "fitted_slope_db_per_label_db": 1.992210443970599,
+        "fixed_slope_db_per_label_db": 2.0,
+        "fixed_slope_intercept_db": 21.575196774422015,
+        "point_count": 8,
+        "snr_labels_db": [
+          -14,
+          -12,
+          -10,
+          -8,
+          -6,
+          -4,
+          -2,
+          0
+        ]
+      },
+      "restart": {
+        "fitted_intercept_db": 21.486414114483054,
+        "fitted_slope_db_per_label_db": 1.995786843305547,
+        "fixed_slope_db_per_label_db": 2.0,
+        "fixed_slope_intercept_db": 21.536395894488308,
+        "point_count": 8,
+        "snr_labels_db": [
+          -14,
+          -12,
+          -10,
+          -8,
+          -6,
+          -4,
+          -2,
+          0
+        ]
+      }
+    }
+  ],
+  "estimator_sha256": "25aff7fd7102b444a224353338c57cbdc0c5a6d70bf553f0d8207e0e0312b502",
+  "image_id": "sha256:d79d833df84c954151a179d804aa1d0422f10c154097ab2c79d107db2ba19dfc",
+  "interpretation": "Changing the candidate channel seed policy greatly reduces the offset in this comparison. This does not establish the original private RNG streams or historical scheduler interleaving.",
+  "method": "Estimate all 1000 windows per key for the six mapper modulations at all 20 labels with estimate_window_powers and summarize_powers. Fit each candidate curve with fit_snr_curve. Use the retained original curves and compare_direct_candidate to fit one median common offset and compute RMS residuals.",
+  "restart_comparison": {
+    "method": "Median original-minus-candidate fixed-slope intercept across modulations; RMS residual is computed after removing that common difference.",
+    "modulation_count": 6,
+    "original_minus_candidate_offset_db": 0.08038897797473332,
+    "residuals_db": {
+      "8PSK": -0.0539064986480966,
+      "BPSK": 0.03449510048571813,
+      "PAM4": 0.04870153407585143,
+      "QAM16": -0.023881282600623166,
+      "QAM64": -0.04158809804102681,
+      "QPSK": 0.023881282600623166
+    },
+    "rmse_db": 0.03945010179820001
+  },
+  "restart_pickle_sha256": "af5d4a17ac2d1699e5e0c67198bacbdcc20caaa8988519bb33c6af5d208d8ec6",
+  "retained_mapper_report_sha256": "c425f94d7ffde085a415f0522109cb204681c911014392a5a47a1cac3527c9a5",
+  "scope": "Fresh restart Baseline estimates compared with original-data curves retained in the mapper report. Original data was not refitted."
+}

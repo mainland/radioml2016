@@ -26,7 +26,7 @@ complete original stack.
 | Python | 2.7.12 | Released generator uses Python 2 syntax/APIs; 2.7.12 appears in the inspected October 2016 RadioML image package database. This does not identify the generating interpreter. |
 | NumPy / SciPy | 1.11.0 / 0.17.0 | Same contemporary image database and Xenial package family; original patch levels unestablished. |
 | Matplotlib | 1.5.1 | Xenial package, needed by the existing imports. No original-data measurement identifies this version. |
-| gr-mapper | January 10, 2016 no-normalization revision | Evidence-supported default. A direct candidate matches the distributed dataset's relative SNR across six mapper modulations with 0.471 dB RMS error after one common offset. The absolute SNR remains 2.871 dB lower in the candidate. |
+| gr-mapper | January 10, 2016 no-normalization revision | Evidence-supported default. With restarting channel seeds, the six mapper modulations differ from the retained original-data SNR curves by a common 0.080 dB, with 0.039 dB RMS residual after removing that offset. |
 | gr-mediatools | October 10, 2016 revision | Contemporary Python 2 build fix; retains the decoder code. No original audio decode has been recovered for comparison. |
 | FFmpeg libraries | 2.8.6 | Initial Xenial package version; builds the old mediatools source without an API compatibility patch. Original decoder version remains unknown. |
 | Boost / FFTW | 1.58 / 3.3.4 | Xenial build dependencies. The measured pool agrees with the candidate Boost implementation, without uniquely identifying its version. |
@@ -135,19 +135,22 @@ distributed arrays. The calibrated candidates reproduce their theoretical gain
 shifts within 0.42 dB. After one common offset is fitted, the distributed
 modulation powers match the earlier no-normalization behavior with 0.172 dB RMS
 residual, versus 3.943 dB for the February accumulator bug and 6.354 dB for the
-October fix. A full candidate built from the [January 10 no-normalization
-revision][mapper-no-normalization] selects its own model with 0.375 dB RMS
-residual. After removing one 2.871 dB common difference, its SNR intercepts
-match the distributed dataset with 0.471 dB RMS error. The source runtime also
-gives the predicted BPSK/PAM4 mapper peaks and identical reconstructed
-complex-noise power across all three candidates.
+October fix. A full candidate with advancing channel seeds, built from the
+[January 10 no-normalization revision][mapper-no-normalization], selects its
+own model with 0.375 dB RMS residual. After removing one 2.871 dB common
+difference, its SNR intercepts match the distributed dataset with 0.471 dB RMS
+error. The source runtime also gives the predicted BPSK/PAM4 mapper peaks and
+identical reconstructed complex-noise power across all three candidates.
 
-These results support using the January revision as the default, but they do
-not establish the cause of the 2.871 dB absolute-SNR difference. Final window
-normalization prevents a noise-only window from identifying the original
-unnormalized noise amplitude, so the remaining difference cannot presently be
-assigned uniquely to signal gain, noise scaling, or another channel detail.
-The mapper runtime check alone does not establish this result. Revision
+A [channel-seed control](mapper-version-evidence.md#channel-seed-control)
+changes only the candidate's policy from advancing to restarting the base
+seed for each transmission. Against the retained original-data curves, the
+common difference falls to 0.080 dB, with 0.039 dB RMS residual. The seed
+policy accounts for most of the earlier discrepancy in this comparison.
+This supports restarting as the baseline, consistent with the published
+constructor argument. It does not recover the original shared RNG
+interleaving or establish exact historical SNR. These end-to-end measurements
+support selecting the January revision. Revision
 `463f9e94f5ea45e5be64bae06291423ead3b70f2`, the buggy revision
 `52383e2832a86feb452ddd80928bce69147f01c0`, and the corrected revision remain
 selectable through `--build-arg MAPPER_REV=...`.

@@ -13,9 +13,11 @@ The [mapper-version investigation](docs/mapper-version-evidence.md) estimates
 actual SNR without recovering the noise RNG state, calibrates the estimator
 against paired mapper candidates, and fits the relative constellation powers
 for no normalization, the February 2016 accumulator bug, and the October 2016
-fix. The retained advancing-seed candidate supports the earlier no-normalization
-mapper. Its common 2.871 dB SNR offset describes that recorded experiment,
-not the restarting-channel default.
+fix. A direct candidate with advancing channel seeds confirms the earlier
+no-normalization behavior, which is now the default. That candidate differs
+from the distributed dataset by a common 2.871 dB SNR offset. Restarting the
+channel seed reduces the offset to 0.080 dB against the retained original-data
+curves, with 0.039 dB RMS residual after removing it.
 
 ## Build the environment
 
@@ -36,8 +38,8 @@ explains the selected versions and the noise-evidence investigation.
 The image uses the January 10, 2016 `gr-mapper` revision before constellation
 normalization was introduced. That choice is based on the distributed
 dataset's relative SNR across six digital modulations, not on its publication
-date. The retained SNR comparison used advancing channel seeds, so its common
-offset does not describe the restarting default.
+date. The recorded 2.871 dB common absolute-SNR mismatch applies to the
+advancing-seed comparison.
 
 ## Generate the compatibility dataset
 
@@ -69,16 +71,27 @@ interleaving, and complete environment are unknown. The supported claim is a
 deterministic reconstruction that preserves the known generator semantics and
 output schema in the pinned Linux amd64 image.
 
-Every transmission reuses the supplied channel seed. This follows the
-published constructor argument while the runtime patch makes the private
-channel streams repeatable.
-
 For a smaller run:
 
 ```sh
 ./build_dataset --python-seed 42 --numpy-seed 43 --channel-seed 44 \
   --modulations BPSK QPSK --snrs 18 --frames-per-key 80 --output example.dat
 ```
+
+### Channel seed policy
+
+Every flag defaults to the baseline behavior. The default
+`--channel-seed-policy restart` reuses the supplied channel base seed for
+every transmission, following the published constructor argument. In the
+patched runtime this repeats the private channel streams. It does not replay
+the original shared RNG interleaving.
+
+Pass `--channel-seed-policy advance` to advance the base by four for each
+transmission, without changing the source-selection policy. This reproduces the
+earlier advancing-seed fixture:
+`bf8183edabea8e3c608ec5cde7cfa6818187ce999d82dbb7ab3a6ed1def2f697`.
+The [generation guide](docs/reproducible-generation.md#seeds) defines the
+seed range, component routing, and wraparound.
 
 See [reproducible generation](docs/reproducible-generation.md) for seed routing,
 runtime changes, and the scope of reproducibility.

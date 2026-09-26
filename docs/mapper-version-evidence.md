@@ -28,12 +28,6 @@ environment generated the distributed file.
 
 ## Experimental design
 
-The retained candidate measurements used advancing channel base seeds.
-The default generator restarts the supplied seed for every transmission, so
-running the procedure with that default is a different channel-policy control.
-Keep that distinction when comparing new reports with the retained results.
-
-
 [`run_mapper_evidence.sh`](../scripts/run_mapper_evidence.sh) builds six
 images:
 
@@ -48,10 +42,14 @@ images:
 6. A reproducible generator image derived from the post-fix image.
 
 The three reproducible images use the same source tree, source material, Python
-and NumPy seeds, channel seeds, STS scheduler, and deterministic channel
-runtime. The mapper revision is the intended difference. Each image generates
+and NumPy seeds, advancing channel seeds, STS scheduler, and deterministic
+channel runtime. The runner explicitly selects `--channel-seed-policy advance`
+to reproduce the recorded comparison. The default generator instead uses
+`restart`. The mapper revision is the intended difference among these three
+candidates. Each image generates
 1,000 windows for all 20 SNR labels and all eleven modulations. Generating the
-complete modulation list preserves the recorded sampler draw order. The comparison then selects the six mapper-based modulations.
+complete modulation list preserves the generator loop's seed advancement and
+sampler draws. The comparison then selects the six mapper-based modulations.
 Before generation, the runner executes the historical runtime check against
 all three base images. It checks both BPSK and PAM4 because BPSK cannot
 distinguish no normalization from corrected normalization. The expected
@@ -170,7 +168,8 @@ rather than either later implementation. It also explains why absolute
 pre/post distances split 3-3 by modulation: neither later candidate represents
 the distributed data's relative constellation powers.
 
-The direct January candidate supplies the missing end-to-end check. Its pickle
+The direct January candidate with advancing channel seeds supplies the
+end-to-end check. Its pickle
 has SHA-256
 `0488f50aa7c7bd9ca6f151fd6cdaed6c18dc5390416585577db3744b6f6cc475`.
 The median distributed-minus-candidate SNR-intercept difference is 2.871 dB.
@@ -179,23 +178,64 @@ range from -0.580 through +0.686 dB and have 0.471 dB RMS error. This is close
 to the three candidate self-check errors and supports making the January
 revision the historical-image default.
 
-The absolute 2.871 dB difference remains unresolved. The runtime checks show
+The advancing-seed comparison alone does not explain its 2.871 dB
+difference from the distributed dataset. The runtime checks show
 the predicted `(BPSK peak, PAM4 peak)` triples and the same reconstructed noise
 pool and selected noise sequence in all three images. Their pool and sequence
 mean powers are 0.982834 and 0.979644, respectively. The signal-only
 transmitter checks likewise follow the mapper's predicted relative gains.
 Those facts validate the reconstructed candidates, but they cannot recover the
 original pre-normalization noise amplitude. A normalized noise-only window
-contains no absolute-scale information, so the present evidence cannot assign
+contains no absolute-scale information. Those controls alone cannot assign
 the common difference uniquely to signal gain, noise scaling, or another
-historical channel detail. The reconstruction therefore claims the supported
-relative mapper behavior, not exact historical SNR.
+historical channel detail. The seed-policy control below tests one such
+channel difference directly.
 
 The [retained report](../evidence/mapper/snr-comparison.json) has SHA-256
 `c425f94d7ffde085a415f0522109cb204681c911014392a5a47a1cac3527c9a5`.
 Its [evidence index](../evidence/README.md) records the input identities,
 candidate images, and preservation limits. Rerun the procedure below into
 `output/mapper-evidence/` to compare a fresh result with that observation.
+
+## Channel-seed control
+
+The published generator supplies `0x1337` to every channel constructor. The
+mapper candidates above instead advanced that base by four for every
+transmission. Repeating the January candidate with
+`--channel-seed-policy restart` changes the full pickle SHA-256 to
+`af5d4a17ac2d1699e5e0c67198bacbdcc20caaa8988519bb33c6af5d208d8ec6`.
+All other generator settings and the pinned runtime are unchanged.
+
+The [seed-policy report](../evidence/mapper/channel-seed-policy.json) applies
+the same estimator and fitting rules to that candidate. It compares the fresh
+candidate curves with the original-data curves retained in the earlier
+mapper report. The original dataset was not refitted for this control.
+
+| Channel seed policy | Common original-minus-candidate offset | RMS residual after offset |
+| --- | ---: | ---: |
+| Advance | 2.871 dB | 0.471 dB |
+| Restart | 0.080 dB | 0.039 dB |
+
+Changing this policy accounts for most of the earlier discrepancy in the
+candidate comparison. It changes the fading realization as well as drift and
+noise, so this control does not isolate fading gain from the other channel
+components. It also does not recover the original shared RNG interleaving.
+The remaining 0.080 dB is not an independently measured noise-scale error.
+
+To refit the comparison against the original arrays, generate a restarting
+candidate and reuse the primary estimator command below:
+
+```sh
+./build_dataset --channel-seed-policy restart \
+  --output output/mapper-evidence/restart.dat
+```
+
+In that estimator command, set `--no-normalization /data/restart.dat` and
+write a new report, for example `--output /data/restart-snr-comparison.json`.
+Keep the pre-fix and post-fix inputs unchanged. Compare its
+`direct_no_normalization_comparison` with the retained seed-policy report's
+`restart_comparison`. The report records both candidate hashes, the retained
+input-report hash, estimator hash, image ID, configuration, and fitted curves.
 
 ## Run the comparison
 

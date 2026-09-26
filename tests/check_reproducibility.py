@@ -15,9 +15,11 @@ import numpy as np
 from gnuradio import analog
 
 
-# Reference bytes for the January mapper with a restarting channel base.
+# Reference bytes for the January mapper under both channel seed policies.
 COMPATIBILITY_PICKLE_SHA256 = (
     'a1dfcf6d9d5a5e574ad5538ce069a90c7b6b0b0348bc81b9910b640c6c2e928f')
+ADVANCING_PICKLE_SHA256 = (
+    'bf8183edabea8e3c608ec5cde7cfa6818187ce999d82dbb7ab3a6ed1def2f697')
 
 
 def check_runtime():
@@ -46,7 +48,7 @@ def check_baseline_defaults():
     expected = {
         'seed': 201610, 'python_seed': 201610, 'numpy_seed': 201610,
         'channel_seed': 0x1337,
-        'scheduler': 'sts',
+        'channel_seed_policy': 'restart', 'scheduler': 'sts',
         'frames_per_key': 1000, 'snrs': list(range(-20, 20, 2)),
         'modulations': ['BPSK', 'QPSK', '8PSK', 'PAM4', 'QAM16', 'QAM64',
                         'GFSK', 'CPFSK', 'WBFM', 'AM-DSB', 'AM-SSB'],
@@ -100,6 +102,13 @@ def main():
     stable_reference = run('stable-repeat-0', stable_args)
     assert stable_reference == reference
     assert run('stable-repeat-1', stable_args) == stable_reference
+    assert run('explicit-restart', stable_args + [
+        '--channel-seed-policy', 'restart']) == stable_reference
+    advancing_args = stable_args + ['--channel-seed-policy', 'advance']
+    advancing = run('advance-policy-0', advancing_args)
+    assert advancing == ADVANCING_PICKLE_SHA256
+    assert advancing != stable_reference
+    assert run('advance-policy-1', advancing_args) == advancing
     # TPB remains available for comparison, but its schedule is not repeatable.
     run('historical-tpb', ['--scheduler', 'tpb'])
     for seed in ('python', 'numpy', 'channel'):
@@ -109,6 +118,7 @@ def main():
         assert run(seed + '-1', seed_args) == changed
     for name, extra in (
             ('zero-channel', ['--channel-seed', '0']),
+            ('unknown-channel-policy', ['--channel-seed-policy', 'random']),
             ('large-channel', ['--channel-seed', '2147483645']),
             ('large-numpy', ['--numpy-seed', '4294967296']),
             ('zero-frames', ['--frames-per-key', '0'])):

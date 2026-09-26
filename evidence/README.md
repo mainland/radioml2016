@@ -11,8 +11,9 @@ changes.
 | [Noise pools](noise/pool-comparison.json) | The Boost MT pool seeded with 4919 fits all 1,000 AM-SSB/-20 windows. Alternative pools fail the same criterion. | [Noise procedure](../docs/noise-evidence.md) |
 | [AM-SSB/+18 control](noise/pool-comparison-amssb-18.json) | Tests the noise model where residual message leakage is more visible. | [Noise procedure](../docs/noise-evidence.md#am-ssb-at-18-db) |
 | [Selector recurrence](noise/lrand48.json) | 220 of 1,000 windows follow 128 consecutive historical `lrand48` selections. | [Recurrence test](../docs/noise-evidence.md#5-test-the-order-of-the-indices) |
-| [Mapper comparison](mapper/snr-comparison.json) | Three calibrated candidates select their own models. The distributed data favors no normalization, with an unresolved common SNR offset. | [Mapper procedure](../docs/mapper-version-evidence.md) |
+| [Mapper comparison](mapper/snr-comparison.json) | Three mapper candidates select their own models. The distributed data favors no normalization. This advancing-seed comparison leaves a common SNR offset. | [Mapper procedure](../docs/mapper-version-evidence.md) |
 | [January](mapper/none-runtime.json), [August](mapper/pre-runtime.json), [October](mapper/post-runtime.json) runtime controls | Mapper amplitudes and reconstructed noise checks for each candidate. | [Runtime checks](../docs/historical-environment.md#build-inspect-and-validate) |
+| [Channel seed policy](mapper/channel-seed-policy.json) | Restarting the candidate seed reduces the common SNR difference from 2.871 to 0.080 dB against retained original-data curves. | [Seed-policy control](../docs/mapper-version-evidence.md#channel-seed-control) |
 | [Candidate images](mapper/images.json) | Identities and build configuration of the six mapper images. | [Candidate design](../docs/mapper-version-evidence.md#experimental-design) |
 
 Verify the preserved report bytes from this directory:

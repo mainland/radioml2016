@@ -103,7 +103,8 @@ for candidate in none pre post; do
         -v "$repository:/work:ro" -v "$output_dir:/out" -w /work \
         "$image" python2.7 generate_RML2016.10a.py \
         --python-seed 201610 --numpy-seed 201610 \
-        --channel-seed 0x1337 --scheduler sts --frames-per-key 1000 \
+        --channel-seed 0x1337 --channel-seed-policy advance \
+        --scheduler sts --frames-per-key 1000 \
         --output "/out/$destination" \
         > "$output_dir/$candidate-generation.log" 2>&1
 done

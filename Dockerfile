@@ -10,9 +10,11 @@
 #   buggy: 52383e2832a86feb452ddd80928bce69147f01c0 (Aug23,2016)
 #   fixed: 15e71bf01be68d427ed9f37966b83efc1180a1d5 (Oct11,2016)
 # The no-normalization revision is the evidence-supported default. A direct
-# candidate matches the distributed dataset's relative SNR pattern, although
-# a common absolute-SNR offset remains unresolved; see
-# docs/mapper-version-evidence.md for the measurements and limitations.
+# candidate supports the distributed dataset's relative SNR pattern. The
+# advancing-seed comparison has a common original-minus-candidate offset of
+# 2.871 dB. Restarting the channel seed reduces it to 0.080 dB against the
+# retained original-data curves, without recovering the original RNG state.
+# See docs/mapper-version-evidence.md for the measurements and limitations.
 FROM ubuntu:16.04@sha256:a3785f78ab8547ae2710c89e627783cfa7ee7824d3468cae6835c9f4eae23ff7
 
 ARG DEBIAN_FRONTEND=noninteractive

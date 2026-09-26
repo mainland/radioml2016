@@ -47,6 +47,8 @@ for snr in snr_vals:
               ntaps = 8
               noise_amp = 10**(-snr/10.0)
               chan = channels.dynamic_channel_model( 200e3, 0.01, 50, .01, 0.5e3, 8, fD, True, 4, delays, mags, ntaps, noise_amp, options.channel_seed )
+              if options.channel_seed_policy == 'advance':
+                  options.channel_seed = 1 + (options.channel_seed - 1 + 4) % 2147483644
 
               snk = blocks.vector_sink_c()
 

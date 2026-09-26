@@ -36,7 +36,9 @@ not equal slicing a full dataset.
 For the representative `--frames-per-key 80 --snrs -20 18` invocation,
 the restarting-channel pickle has SHA-256
 `a1dfcf6d9d5a5e574ad5538ce069a90c7b6b0b0348bc81b9910b640c6c2e928f`.
-The regression requires this literal hash and fresh-process repeatability.
+Adding `--channel-seed-policy advance` instead produces
+`bf8183edabea8e3c608ec5cde7cfa6818187ce999d82dbb7ab3a6ed1def2f697`.
+The regression requires both literal hashes and fresh-process repeatability.
 
 Generation selects GNU Radio's single-thread scheduler (`STS`) before any
 flowgraph is constructed. The reproducibility fixture requires identical
@@ -51,18 +53,28 @@ of the reproducibility guarantee for parameter or seed variations.
 | `--seed` | `201610`; supplies Python and NumPy defaults |
 | `--python-seed` | Overrides the sampler's initial offsets and window increments |
 | `--numpy-seed` | Overrides the digital source masks; analog sources draw no mask |
-| `--channel-seed` | `0x1337` (4919); base reused for every transmission |
+| `--channel-seed` | `0x1337` (4919); channel base seed |
+| `--channel-seed-policy` | `restart`; reuse the base for each transmission, or `advance` to change it |
 
-Python and NumPy seeds accept `0..4294967295`. Channel seeds accept
-`1..2147483644`. GNU Radio treats zero as a time seed. Every transmission
-reuses the supplied channel base, following the published generator's repeated
-`0x1337` constructor argument. In the patched runtime this restarts the private
-channel streams, so equal-length transmissions share the same channel evolution
-and noise sequence before amplitude scaling. It does not recover the original
-shared RNG interleaving.
+Python and NumPy seeds accept `0..4294967295`. Channel seeds
+accept `1..2147483644`. GNU Radio treats zero as a time seed. With the default
+`--channel-seed-policy restart`, every transmission uses the supplied base
+seed. This follows the published generator's repeated `0x1337` constructor
+argument. In the patched runtime it also restarts the private channel streams,
+so equal-length transmissions share the same channel evolution and noise
+sequence before amplitude scaling. It does not recover the original shared
+RNG interleaving.
 
-AWGN uses `base`, sample-rate drift uses `base+1`, carrier-frequency drift uses
-`base+2`, and fading path `i` uses angle seed `base+i` and walk seed `base+i+1`.
+With `--channel-seed-policy advance`, transmission `b`, counted from zero
+across the run, uses
+`base = 1 + ((channel_seed - 1 + 4*b) % 2147483644)`. The base advances across
+modulation and SNR boundaries and wraps within the supported range. This
+changes fading, drift, and noise realizations. It does not establish statistical independence between
+transmissions.
+
+Under either policy, AWGN uses `base`, sample-rate drift uses `base+1`,
+carrier-frequency drift uses `base+2`, and fading path `i` uses angle seed
+`base+i` and walk seed `base+i+1`.
 
 ## Deterministic evaluation
 
@@ -92,7 +104,9 @@ Run [tests/check_reproducibility.py](../tests/check_reproducibility.py) using
 the container command in the [README](../README.md#check-reproducibility). It
 compares three fresh processes across all 11 modulations at SNRs -20 and 18
 with 80 windows per key, exercising multiple transmissions, and checks
-independent Python, NumPy, and channel seed changes.
+independent Python, NumPy, and channel seed changes. It checks that the
+default restarts the channel seed and that explicit advancement repeats its
+separate fixture.
 
 Byte identity applies to the tested Linux amd64 image, source inputs, and
 execution settings. Other architectures or rebuilt dependencies may differ.
