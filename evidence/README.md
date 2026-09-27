@@ -5,10 +5,13 @@ September 2026 investigation. They let a reviewer inspect the measurements
 behind the historical environment and mapper choices without first generating
 three full datasets. They are not new validation results for subsequent code
 changes. The separate baseline control identifies which mapper produces the
-golden fixture used by the reproducibility test.
+golden fixture used by the reproducibility test. The manual validation record
+separately summarizes a fresh local build and validation of the maintained
+generator.
 
 | Reports | Recorded observation | Reproduce and interpret |
 | --- | --- | --- |
+| [Manual validation](manual-validation.json) | Uncached local builds pass all four dataset hashes, the reproducibility matrix, and the retained dataset quality audit. | [Manual procedure](../docs/reproducible-generation.md#manual-validation) |
 | [Dataset quality](dataset-quality.json) | Baseline has 618 excess exact duplicate windows within modulation/SNR keys. All three named profiles reuse one channel base seed. | [Artifact audit and split limits](../docs/datasets.md#dependence-and-evaluation-splits) |
 | [Baseline mapper control](baseline.json) | January and October mappers produce distinct fixture hashes. Removing unused imports leaves the January output unchanged. | [Baseline generation](../docs/reproducible-generation.md#build-and-run) |
 | [Noise pools](noise/pool-comparison.json) | The Boost MT pool seeded with 4919 fits all 1,000 AM-SSB/-20 windows. Alternative pools fail the same criterion. | [Noise procedure](../docs/noise-evidence.md) |

@@ -17,10 +17,10 @@ and chosen.
 
 ## Reproduce
 
-Development is on `dev`. The `main` branch preserves upstream commit
-`20f99215`. Use Docker with Linux amd64 support and a recursive checkout.
-Both image builds are required: the reproducible image extends the historical
-candidate.
+Development is on `dev`. The `main` branch is pinned to commit `20f99215`.
+Use a Linux host with Docker configured for Linux amd64 and a recursive
+checkout. Both image builds are required: the reproducible image extends the
+historical candidate.
 
 ```sh
 git clone --recursive --branch dev https://github.com/mainland/radioml2016

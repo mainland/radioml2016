@@ -1,0 +1,72 @@
+{
+  "baseline_pickle_hdf5_equal": true,
+  "baseline_window_count": 220000,
+  "build_cache_used": false,
+  "date": "2026-09-27",
+  "fast_tests_passed": 20,
+  "historical_image_id": "sha256:ce7e65715c759f3f8b2cb6e4a0b99e84e6b915fb810a7e95238cce23c4fdce88",
+  "host_cpu_model": "AMD Ryzen 9 5950X 16-Core Processor",
+  "image_archive_verified_blobs": 39,
+  "limits": [
+    "These are new generated artifacts, not the original RadioML arrays.",
+    "This run used the recorded local Linux amd64 environment. It does not establish portability to other architectures or future dependency versions.",
+    "Images and full reports are retained locally. Images were not published."
+  ],
+  "local_archives": {
+    "images.tar": {
+      "sha256": "28947d9e042c76cbfa4d138d4ef8816a85a1a101222d5cecad02aee6a7e0666c",
+      "size_bytes": 1709655040
+    },
+    "source-material.tar": {
+      "sha256": "74474951c6d9e70aed804931a3168f6f922122a83c2d3cb16801d081f881c59a",
+      "size_bytes": 31088640
+    },
+    "source.tar": {
+      "sha256": "91b4c5b598e16314db5ce4718330095c3189eb4496475c157b9cdcf1f095f0fd",
+      "size_bytes": 952320
+    }
+  },
+  "local_checksum_inventory_sha256": "5a67daa398b084141bbbba0c1ca71a1dc485f9efb45c6b301c9a40e116dcfce1",
+  "local_output_directory": "output/validation-20260927",
+  "matrix_artifact_count": 40,
+  "platform": "linux/amd64",
+  "quality_audit_artifacts_match_reference": true,
+  "quality_reference_report_sha256": "3763bd076769f82115cf7c2b62f0caf24b530991986b9d7185382b4c9e89da84",
+  "reference_artifacts": [
+    {
+      "filename": "RML2016.10a-Reproducible-Baseline.dat",
+      "sha256": "af5d4a17ac2d1699e5e0c67198bacbdcc20caaa8988519bb33c6af5d208d8ec6",
+      "size_bytes": 640771990
+    },
+    {
+      "filename": "RML2016.10a-Reproducible-Baseline.h5",
+      "sha256": "f5ce285c62b5c099ce0f0bc89057ff17298313f0ceab9260bbd4d40d9bdc7eaa",
+      "size_bytes": 238153705
+    },
+    {
+      "filename": "RML2016.10a-Reproducible-Calibrated.h5",
+      "sha256": "caeb06bdb9791d8f86df52922ae70297d33795d694813b7a98e6ac17445423c5",
+      "size_bytes": 238176297
+    },
+    {
+      "filename": "RML2016.10a-Reproducible-Calibrated-VariedAudio.h5",
+      "sha256": "df92c6ec10d9aab7dca7edb502ed156be893cb3e868b12154e8c4fab5eeffa64",
+      "size_bytes": 238176297
+    }
+  ],
+  "reports_sha256": {
+    "dataset-quality.json": "133d63ad4d14cd6371770c6ebbdd896928ea115a3aa219a137700a9d8a3211dd",
+    "generated-SHA256SUMS": "147f486f7fc0287fd7dad35668bb34b89f1092bee536c2abc1432be79a0e07b8",
+    "generated/datasets/datasets.json": "f1447c62156c91f901a90969b91d1540097a6a70c953ff656dc9e3edf24a3020",
+    "generated/matrix/reproducibility-matrix.json": "eb383a858754c5826b931e14afa43426bec1bc9f0d6bdc7effce349d2e71f8b4",
+    "pytest.xml": "df7aa82cd8952c2e4d4755f95b2946a0a835a547976404fcc78b1ee4abdf7c10",
+    "runtime-provenance.tar": "1f99505e49dd708e8507ee9c212afeaf8c79c45412c7d094622073c8ec381890"
+  },
+  "runtime_image_id": "sha256:421e76e50deb36dc2c77539535b806db817978d4e0d46632d1505eeba98ef066",
+  "schema": 1,
+  "scope": "Manual validation after uncached local environment builds",
+  "source_commit": "e410ffddecb98bb78b08222249e403dbc6f2830a",
+  "source_material_commit": "07615fff2fe281e9c62a86cd048a3b6cc8bb98db",
+  "source_tree_clean": true,
+  "validation_exit_code": 0
+}

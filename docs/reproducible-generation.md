@@ -665,7 +665,8 @@ deterministic.
 
 Run validation explicitly from the repository root on the `dev` branch.
 [`scripts/validate.sh`](../scripts/validate.sh) runs the existing checks and
-retains their output. The repository has no GitHub Actions workflows and
+retains their output. The wrapper requires Bash, GNU coreutils, and `lscpu`
+on a Linux host. The repository has no GitHub Actions workflows and
 does not require Docker Hub credentials.
 
 For a fresh environment validation, use a clean, committed recursive checkout
@@ -717,3 +718,12 @@ preserving a reviewed validation run. Rebuilt image IDs may differ because
 image metadata and transitive packages are not fully frozen. Successful
 validation establishes the documented generation contract for the recorded
 environment. It does not establish equivalence to the original RadioML arrays.
+
+The [September 27, 2026 manual validation record](../evidence/manual-validation.json)
+identifies the tested source commit, freshly built image IDs, and local
+archives. All 20 fast tests passed, all four dataset hashes matched, and the
+40-artifact reproducibility matrix passed. The separately rerun
+[dataset quality audit](datasets.md#dependence-and-evaluation-splits) reproduced
+all three retained artifact entries, including 618 excess exact duplicate
+windows in Baseline and zero in the two calibrated profiles. The new images
+were saved locally without publication.
