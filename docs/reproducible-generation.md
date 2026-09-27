@@ -660,3 +660,60 @@ execution settings. Other architectures or rebuilt dependencies may differ.
 The environment-reconstruction image preserves GNU Radio's shared RNG for the
 evidence investigation. Explicit seeds alone do not make that runtime
 deterministic.
+
+### Manual validation
+
+Run validation explicitly from the repository root on the `dev` branch.
+[`scripts/validate.sh`](../scripts/validate.sh) runs the existing checks and
+retains their output. The repository has no GitHub Actions workflows and
+does not require Docker Hub credentials.
+
+For a fresh environment validation, use a clean, committed recursive checkout
+and a new output directory. The following Bash commands rebuild both images
+without a build cache, retaining their build logs. The base image remains
+pinned by digest in `Dockerfile`.
+
+```bash
+set -euo pipefail
+validation_output=output/validation-$(date -u +%Y%m%dT%H%M%SZ)
+mkdir -p "$validation_output/reports"
+git rev-parse HEAD > "$validation_output/reports/build-source-commit.txt"
+git status --porcelain=v1 > "$validation_output/reports/build-source-status.txt"
+docker build --platform linux/amd64 --no-cache --pull --progress plain \
+  -t radioml2016:historical . \
+  2>&1 | tee "$validation_output/reports/build-historical.log"
+docker image inspect radioml2016:historical \
+  > "$validation_output/reports/historical-image.json"
+docker build --platform linux/amd64 --no-cache --progress plain \
+  -f Dockerfile.reproducible -t radioml2016:reproducible . \
+  2>&1 | tee "$validation_output/reports/build-reproducible.log"
+bash scripts/validate.sh full radioml2016:reproducible "$validation_output"
+```
+
+The full invocation runs the fast pytest suite, then both slow reporting
+interfaces: full named-dataset regeneration and the reproducibility matrix.
+It requires all four reference SHA-256 hashes and exact Baseline pickle/HDF5
+I/Q and label equality. If a slow check fails, the other still runs and the
+wrapper exits with a failure status. A failed fast suite stops the run.
+The checks do not update reference hashes.
+
+To run only the fast suite against an existing local image, use a different
+output directory:
+
+```sh
+bash scripts/validate.sh fast radioml2016:reproducible output/validation-fast
+```
+
+Validation containers have no network access and mount the checkout read-only.
+Generated data stays under `data/`. The `reports/` directory retains the source
+commit and working-tree status, submodule identities, host and image details,
+runtime provenance, test logs, JSON reports, and actual generated-file hashes.
+`exit-code.txt` records the wrapper's result. A failed run may leave incomplete
+artifacts or omit a final JSON report, so inspect the exit status and logs as
+well. The wrapper refuses to reuse an existing `data/` directory.
+
+Retain the images locally with `docker image save` alongside the reports when
+preserving a reviewed validation run. Rebuilt image IDs may differ because
+image metadata and transitive packages are not fully frozen. Successful
+validation establishes the documented generation contract for the recorded
+environment. It does not establish equivalence to the original RadioML arrays.

@@ -17,26 +17,28 @@ and chosen.
 
 ## Reproduce
 
-Use Docker with Linux amd64 support and a recursive checkout. Both image builds
-are required: the reproducible image extends the historical candidate.
+Development is on `dev`. The `main` branch preserves upstream commit
+`20f99215`. Use Docker with Linux amd64 support and a recursive checkout.
+Both image builds are required: the reproducible image extends the historical
+candidate.
 
 ```sh
-git clone --recursive https://github.com/mainland/radioml2016
+git clone --recursive --branch dev https://github.com/mainland/radioml2016
 cd radioml2016
 docker build --platform linux/amd64 -t radioml2016:historical .
 docker build --platform linux/amd64 -f Dockerfile.reproducible \
   -t radioml2016:reproducible .
 ```
 
-Run the validation suite, including full dataset hash checks and the
-byte-reproducibility matrix:
+Run the full validation suite manually and retain its generated artifacts and
+reports in a fresh output directory:
 
 ```sh
-docker run --rm --network none --user "$(id -u):$(id -g)" \
-  -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 \
-  -v "$PWD:/work:ro" -w /work radioml2016:reproducible \
-  python2.7 -m pytest -q tests
+bash scripts/validate.sh full radioml2016:reproducible output/validation
 ```
+
+The [manual validation procedure](docs/reproducible-generation.md#manual-validation)
+covers uncached environment builds, fast checks, and the retained provenance.
 
 All generator flags default to Baseline settings, including restarting the
 channel seed for each transmission. Generate its pickle with:
